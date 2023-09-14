@@ -25,8 +25,4 @@ private:
 	std::vector<glm::vec3> positions;
 	std::vector<float> sizes;
 	std::vector<glm::vec4> colors;
-
-	unsigned int instancePos;
-	unsigned int instanceSize;
-	unsigned int instanceColor;
 };
