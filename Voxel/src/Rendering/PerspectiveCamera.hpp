@@ -1,0 +1,27 @@
+#pragma once
+
+#include <glm/vec3.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+class PerspectiveCamera
+{
+public:
+	PerspectiveCamera(float x, float y, float z, float fov, float nearPlane, float farPlane, float width, float height);
+	glm::mat4 getProjection();
+	glm::mat4 getView();
+	void setPosition(float x, float y, float z);
+	glm::vec3 getPosition();
+private:
+	void calculateMatrices();
+	void calculateViewMatrix();
+	void calculateProjectionMatrix();
+
+	glm::vec3 position;
+	glm::vec3 direction = glm::vec3(1, 0,0);
+	float fov;
+	float nearPlane, farPlane;
+	float width, height;
+
+	glm::mat4 projection;
+	glm::mat4 view;
+};
