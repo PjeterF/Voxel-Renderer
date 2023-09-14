@@ -11,13 +11,14 @@ public:
 	glm::mat4 getView();
 	void setPosition(float x, float y, float z);
 	glm::vec3 getPosition();
+	void lookAt(float x, float y, float z);
 private:
 	void calculateMatrices();
 	void calculateViewMatrix();
 	void calculateProjectionMatrix();
 
 	glm::vec3 position;
-	glm::vec3 direction = glm::vec3(1, 0,0);
+	glm::vec3 lookAtPoint = glm::vec3(0, 0, 0);
 	float fov;
 	float nearPlane, farPlane;
 	float width, height;

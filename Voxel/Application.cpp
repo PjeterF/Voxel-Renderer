@@ -14,11 +14,19 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 	glViewport(0, 0, windowWidth, windowHeight);
 
 	ShaderProgram* cubeShad = new ShaderProgram("src/Shaders/cube.vert", "src/Shaders/cube.frag");
-	camera = new PerspectiveCamera(4, 4, 4, 45, 0.1, 100, windowWidth, windowWidth);
+	camera = new PerspectiveCamera(0, 0, 0, 45, 0.1, 100, windowWidth, windowWidth);
 	cubeRenderer = new CubeRenderer(camera, cubeShad->getId());
+
+	camera->setPosition(20, 20, 20);
+
+	ShaderProgram* instancedCudeShad = new ShaderProgram("src/Shaders/instancedCube.vert", "src/Shaders/instancedCube.frag");
+	instancedCubeRenderer = new InstancedCubeRenderer(camera, instancedCudeShad->getId());
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void Application::run()
@@ -28,13 +36,24 @@ void Application::run()
 		glClearColor(0.2, 0.2, 0.2, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		cubeRenderer->draw(0, 0, 0, 1, 1, 0, 0, 1);
-		cubeRenderer->draw(0, 0, 0, 0.8, 1, 1, 0, 1);
-		cubeRenderer->draw(0, 0, 0, 0.6, 1, 0.5, 0.8, 1);
-		cubeRenderer->draw(0, 0, 0, 0.4, 0.5, 0.5, 1, 1);
-		cubeRenderer->draw(0, 0, 0, 0.2, 0.3, 0.3, 0.8, 1);
+		for (int i = 0; i < 100; i++)
+		{
+			for (int j = 0; j < 100; j++)
+			{
+				for (int k = 0; k < 100; k++)
+				{
+					instancedCubeRenderer->commisionInstance(i, j, k, 1, (float)i / 10, (float)j / 10, (float)k / 10, 1);
+				}
 
-		camera->setPosition(4 * sin(glfwGetTime()), 4 * sin(glfwGetTime()), 4);
+			}
+		}
+
+		instancedCubeRenderer->drawInstances();
+
+		double scale = sin(glfwGetTime());
+		double scale2 = cos(glfwGetTime());
+		camera->lookAt(5, 5, 5);
+		camera->setPosition(10*scale2, 10 * scale, 20 * scale);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

@@ -40,18 +40,7 @@ CubeRenderer::CubeRenderer(PerspectiveCamera* camera, GLuint shaderProgramID)
     1, 0, 4
 	};
 
-	/*std::vector<float> vertices =
-	{
-		-1 ,-1, 0,
-		-1, 1, 0,
-		1, 1, 0,
-		1, -1, 0,
-	};
-	std::vector<int> indices =
-	{
-		0, 1, 2,
-		0, 2, 3
-	};*/
+	
 
 	VAO = new VertexArray;
 	VAO->bind();
@@ -90,4 +79,11 @@ void CubeRenderer::draw(float x, float y, float z, float size, float r, float g,
 	VAO->bind();
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 	VAO->unbind();
+}
+
+void CubeRenderer::commisionInstance(float x, float y, float z, float size, float r, float g, float b, float a)
+{
+	positions.push_back(glm::vec3(x, y, z));
+	sizes.push_back(size);
+
 }

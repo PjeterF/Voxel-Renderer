@@ -9,12 +9,12 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-class CubeRenderer
+class InstancedCubeRenderer
 {
 public:
-	CubeRenderer(PerspectiveCamera* camera, GLuint shaderProgramID);
-	void draw(float x, float y, float z, float size, float r, float g, float b, float a);
+	InstancedCubeRenderer(PerspectiveCamera* camera, GLuint shaderProgramID);
 	void commisionInstance(float x, float y, float z, float size, float r, float g, float b, float a);
+	void drawInstances();
 private:
 	VertexBuffer* VBO;
 	VertexArray* VAO;
@@ -26,4 +26,7 @@ private:
 	std::vector<float> sizes;
 	std::vector<glm::vec4> colors;
 
+	unsigned int instancePos;
+	unsigned int instanceSize;
+	unsigned int instanceColor;
 };

@@ -33,6 +33,12 @@ glm::vec3 PerspectiveCamera::getPosition()
 	return position;
 }
 
+void PerspectiveCamera::lookAt(float x, float y, float z)
+{
+	lookAtPoint = glm::vec3(x, y, z);
+	calculateViewMatrix();
+}
+
 void PerspectiveCamera::calculateMatrices()
 {
 	calculateViewMatrix();
@@ -42,7 +48,7 @@ void PerspectiveCamera::calculateMatrices()
 void PerspectiveCamera::calculateViewMatrix()
 {
 	view = glm::mat4(1.0f);
-	view = glm::lookAt(position, glm::vec3(0, 0, 0), glm::vec3(0, -1, 0));
+	view = glm::lookAt(position, lookAtPoint, glm::vec3(0, 1, 0));
 }
 
 void PerspectiveCamera::calculateProjectionMatrix()
