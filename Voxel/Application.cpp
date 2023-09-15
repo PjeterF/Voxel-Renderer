@@ -1,8 +1,11 @@
 #include "Application.hpp"
+#include <random>
 
 
 Application::Application(int windowWidth, int windowHeight, std::string title)
 {
+	srand(time(0));
+
 	wndWidth = windowWidth;
 	wndHeight = windowHeight;
 	this->title = title;
@@ -31,22 +34,49 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 
 void Application::run()
 {
+	Chunk c= Chunk();
+
+	for (int i = 0; i < c.size; i++)
+	{
+		for (int j = 0; j < c.size; j++)
+		{
+			for (int k = 0; k < c.size; k++)
+			{
+				int r = rand() % 3;
+				if (r==0)
+				{
+					c.voxels[i][j][k].type = Voxel::TYPE::RED;
+				}
+				else if (r==1)
+				{
+					c.voxels[i][j][k].type = Voxel::TYPE::GREEN;
+				}
+				else if (r==2)
+				{
+					c.voxels[i][j][k].type = Voxel::TYPE::BLUE;
+				}
+
+			}
+		}
+	}
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glClearColor(0.2, 0.2, 0.2, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		for (int i = 0; i < 100; i++)
+		/*for (int i = 0; i < 10; i++)
 		{
-			for (int j = 0; j < 100; j++)
+			for (int j = 0; j < 10; j++)
 			{
-				for (int k = 0; k < 100; k++)
+				for (int k = 0; k < 10; k++)
 				{
-					instancedCubeRenderer->commisionInstance(i, j, k, 1, (float)i / 10, (float)j / 10, (float)k / 10, 1);
+					instancedCubeRenderer->commisionInstance(i, j, k, 0.5, (float)i / 10, (float)j / 10, (float)k / 10, 1);
 				}
 
 			}
-		}
+		}*/
+		c.draw(instancedCubeRenderer);
 
 		instancedCubeRenderer->drawInstances();
 

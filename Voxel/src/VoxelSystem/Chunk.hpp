@@ -1,14 +1,17 @@
 #pragma once
 
 #include "Voxel.hpp"
+#include "../Rendering/InstancedCubeRenderer.hpp"
 
 #include <vector>;
 
 class Chunk
 {
 public:
-	Chunk(int x, int y, int z);
-private:
+	Chunk();
+	void draw(InstancedCubeRenderer* renderer);
+	static int size;
 	Voxel*** voxels;
-	int x, y, z;
+private:
+
 };

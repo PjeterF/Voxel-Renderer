@@ -151,6 +151,7 @@
     <ClCompile Include="src\Rendering\CubeRenderer.cpp" />
     <ClCompile Include="src\Rendering\InstancedCubeRenderer.cpp" />
     <ClCompile Include="src\Rendering\PerspectiveCamera.cpp" />
+    <ClCompile Include="test.hpp" />
     <ClCompile Include="src\VoxelSystem\Chunk.cpp" />
     <ClCompile Include="src\VoxelSystem\Voxel.cpp" />
   </ItemGroup>
@@ -168,6 +169,7 @@
     <ClInclude Include="src\Rendering\InstancedCubeRenderer.hpp" />
     <ClInclude Include="src\Rendering\PerspectiveCamera.hpp" />
     <ClInclude Include="src\VoxelSystem\Chunk.hpp" />
+    <ClInclude Include="src\VoxelSystem\ChunkManager.hpp" />
     <ClInclude Include="src\VoxelSystem\Voxel.hpp" />
   </ItemGroup>
   <ItemGroup>

@@ -57,6 +57,9 @@
     <ClCompile Include="src\Rendering\InstancedCubeRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test.hpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp">
@@ -99,6 +102,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Rendering\InstancedCubeRenderer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VoxelSystem\ChunkManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
