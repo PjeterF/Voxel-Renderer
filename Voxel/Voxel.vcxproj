@@ -157,6 +157,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.hpp" />
+    <ClInclude Include="Externals\FastNoiseLite.h" />
+    <ClInclude Include="Externals\stb_image.h" />
     <ClInclude Include="src\OpenGL\ElementBuffer.hpp" />
     <ClInclude Include="src\OpenGL\FrameBuffer.hpp" />
     <ClInclude Include="src\OpenGL\package.hpp" />
@@ -170,6 +172,7 @@
     <ClInclude Include="src\Rendering\PerspectiveCamera.hpp" />
     <ClInclude Include="src\VoxelSystem\Chunk.hpp" />
     <ClInclude Include="src\VoxelSystem\ChunkManager.hpp" />
+    <ClInclude Include="inputCallbacks.hpp" />
     <ClInclude Include="src\VoxelSystem\Voxel.hpp" />
   </ItemGroup>
   <ItemGroup>

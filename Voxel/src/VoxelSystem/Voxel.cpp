@@ -9,18 +9,3 @@ Voxel::Voxel(Voxel::TYPE type, bool active)
 Voxel::~Voxel()
 {
 }
-
-void Voxel::activate()
-{
-	active = true;
-}
-
-void Voxel::deactivate()
-{
-	active = false;
-}
-
-bool Voxel::isActive()
-{
-	return active;
-}

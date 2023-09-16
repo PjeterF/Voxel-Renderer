@@ -55,32 +55,30 @@ InstancedCubeRenderer::InstancedCubeRenderer(PerspectiveCamera* camera, GLuint s
 
 void InstancedCubeRenderer::commisionInstance(float x, float y, float z, float size, float r, float g, float b, float a)
 {
-	positions.push_back(glm::vec3(x, y, z));
-	sizes.push_back(size);
-	colors.push_back(glm::vec4(r, g, b, a));
+	instanceData.addInstance(x, y, z, size, r, g, b, a);
 }
 
 void InstancedCubeRenderer::drawInstances()
 {
-	if(positions.empty())
+	if(instanceData.empty())
 		return;
 
 	unsigned int instancePos;
 	glGenBuffers(1, &instancePos);
 	glBindBuffer(GL_ARRAY_BUFFER, instancePos);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), &positions[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * instanceData.size(), &instanceData.positions[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	unsigned int instanceSize;
 	glGenBuffers(1, &instanceSize);
 	glBindBuffer(GL_ARRAY_BUFFER, instanceSize);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * sizes.size(), &sizes[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * instanceData.size(), &instanceData.sizes[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	unsigned int instanceColor;
 	glGenBuffers(1, &instanceColor);
 	glBindBuffer(GL_ARRAY_BUFFER, instanceColor);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * colors.size(), &colors[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * instanceData.size(), &instanceData.colors[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	VAO->bind();
@@ -110,14 +108,72 @@ void InstancedCubeRenderer::drawInstances()
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera->getView()));
 
 	VAO->bind();
-	glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0, positions.size());
+	glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0, instanceData.size());
 	VAO->unbind();
 
-	positions.clear();
-	sizes.clear();
-	colors.clear();
+	instanceData.reset();
 
 	glDeleteBuffers(1, &instancePos);
 	glDeleteBuffers(1, &instanceSize);
 	glDeleteBuffers(1, &instanceColor);
+}
+
+PerspectiveCamera* InstancedCubeRenderer::getCamera()
+{
+	return camera;
+}
+
+InstancedCubeRenderer::INSTANCE_DATA::INSTANCE_DATA()
+{
+	positions.resize(bufferSize);
+	sizes.resize(bufferSize);
+	colors.resize(bufferSize);
+}
+
+void InstancedCubeRenderer::INSTANCE_DATA::setBufferSize(int size)
+{
+	positions.clear();
+	sizes.clear();
+	colors.clear();
+
+	positions.resize(size);
+	sizes.resize(size);
+	colors.resize(size);
+
+	bufferSize = size;
+}
+
+int InstancedCubeRenderer::INSTANCE_DATA::getBufferSize()
+{
+	return bufferSize;
+}
+
+void InstancedCubeRenderer::INSTANCE_DATA::addInstance(float x, float y, float z, float size, float r, float g, float b, float a)
+{
+	if (currentIndex >=bufferSize)
+		return;
+
+	positions[currentIndex] = glm::vec3(x, y, z);
+	sizes[currentIndex] = size;
+	colors[currentIndex] = glm::vec4(r, g, b, a);
+
+	currentIndex++;
+}
+
+void InstancedCubeRenderer::INSTANCE_DATA::reset()
+{
+	currentIndex = 0;
+}
+
+int InstancedCubeRenderer::INSTANCE_DATA::size()
+{
+	return currentIndex + 1;
+}
+
+bool InstancedCubeRenderer::INSTANCE_DATA::empty()
+{
+	if (currentIndex == 0)
+		return true;
+	else
+		return false;
 }

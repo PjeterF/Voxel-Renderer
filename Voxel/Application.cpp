@@ -1,6 +1,5 @@
 #include "Application.hpp"
-#include <random>
-
+#include "inputCallbacks.hpp"
 
 Application::Application(int windowWidth, int windowHeight, std::string title)
 {
@@ -16,8 +15,11 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 	gladLoadGL();
 	glViewport(0, 0, windowWidth, windowHeight);
 
+	setUpCallbacks(window);
+
 	ShaderProgram* cubeShad = new ShaderProgram("src/Shaders/cube.vert", "src/Shaders/cube.frag");
 	camera = new PerspectiveCamera(0, 0, 0, 45, 0.1, 100, windowWidth, windowWidth);
+	glfwSetWindowUserPointer(window, camera);
 	cubeRenderer = new CubeRenderer(camera, cubeShad->getId());
 
 	camera->setPosition(20, 20, 20);
@@ -28,62 +30,87 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
+	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
 }
 
 void Application::run()
 {
-	Chunk c= Chunk();
+	FastNoiseLite noise;
+	noise.SetSeed(200);
+	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	for (int i = 0; i < c.size; i++)
+	Chunk::gridDimensions = 100;
+
+	std::vector<float> noiseResult;
+	for (int i = 0; i < Chunk::gridDimensions; i++)
 	{
-		for (int j = 0; j < c.size; j++)
+		for (int j = 0; j < Chunk::gridDimensions; j++)
 		{
-			for (int k = 0; k < c.size; k++)
+			noiseResult.push_back(noise.GetNoise((float)i, (float)j));
+		}
+	}
+
+	Chunk c= Chunk(0, 0);
+	for (int i = 0; i < c.gridDimensions; i++)
+	{
+		for (int j = 0; j < c.gridDimensions; j++)
+		{
+			for (int k = 0; k < c.gridDimensions; k++)
 			{
-				int r = rand() % 3;
-				if (r==0)
+				if (k > noiseResult[i + c.gridDimensions * j] * c.gridDimensions/5)
 				{
-					c.voxels[i][j][k].type = Voxel::TYPE::RED;
+					c.voxels[i][j][k].active = false;;
 				}
-				else if (r==1)
+				int r = rand() % 256;
+				c.voxels[i][j][k].color = glm::vec4(0, (float)r / 512+0.5, 0, 1);
+
+				r = rand() % 256;
+				if (r > 200)
+					c.voxels[i][j][k].color = glm::vec4(0.54, 0.26, 0.07, 1);
+
+				if (c.voxels[i][j][k].active == false && k < 5 && k !=0)
 				{
-					c.voxels[i][j][k].type = Voxel::TYPE::GREEN;
-				}
-				else if (r==2)
-				{
-					c.voxels[i][j][k].type = Voxel::TYPE::BLUE;
+					c.voxels[i][j][k].active = true;
+					c.voxels[i][j][k].color = glm::vec4(0, 0.4, (float)r / 256+0.5, 0.7);
 				}
 
 			}
 		}
 	}
+	c.deactivateHiddenVoxels();
+	Chunk c2 = Chunk(0, 1);
+	for (int i = 0; i < c2.gridDimensions; i++)
+	{
+		for (int j = 0; j < c2.gridDimensions; j++)
+		{
+			for (int k = 0; k < c2.gridDimensions; k++)
+			{
+				if (k > noiseResult[i + c2.gridDimensions * j] * c2.gridDimensions)
+				{
+					c2.voxels[i][j][k].active = false;;
+				}
+				int r = rand() % 256;
+				c2.voxels[i][j][k].color = glm::vec4(1, (float)r / 300, (float)r / 600, 1);
+			}
+		}
+	}
+	c2.deactivateHiddenVoxels();
 
 	while (!glfwWindowShouldClose(window))
 	{
+		camera->lookAtFront();
+
 		glClearColor(0.2, 0.2, 0.2, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		/*for (int i = 0; i < 10; i++)
-		{
-			for (int j = 0; j < 10; j++)
-			{
-				for (int k = 0; k < 10; k++)
-				{
-					instancedCubeRenderer->commisionInstance(i, j, k, 0.5, (float)i / 10, (float)j / 10, (float)k / 10, 1);
-				}
-
-			}
-		}*/
 		c.draw(instancedCubeRenderer);
+		c2.draw(instancedCubeRenderer);
 
 		instancedCubeRenderer->drawInstances();
 
-		double scale = sin(glfwGetTime());
-		double scale2 = cos(glfwGetTime());
-		camera->lookAt(5, 5, 5);
-		camera->setPosition(10*scale2, 10 * scale, 20 * scale);
+		//std::cout << (int)camera->getPosition().x << ", " << (int)camera->getPosition().y << ", " << (int)camera->getPosition().z << std::endl;
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

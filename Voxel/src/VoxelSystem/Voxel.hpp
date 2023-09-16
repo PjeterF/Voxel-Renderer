@@ -1,19 +1,21 @@
 #pragma once
 
+#include <glm/vec4.hpp>
+
 class Voxel
 {
 public:
 	enum TYPE
 	{
-		NOTHING = 0,
+		AIR = 0,
 		RED, GREEN, BLUE
 	};
-	Voxel(Voxel::TYPE type = NOTHING, bool active = true);
+	Voxel(Voxel::TYPE type = AIR, bool active = true);
 	~Voxel();
-	void activate();
-	void deactivate();
-	bool isActive();
+
 	Voxel::TYPE type;
-private:
+	glm::vec4 color = glm::vec4(1, 1, 1, 1);
 	bool active;
+private:
+
 };

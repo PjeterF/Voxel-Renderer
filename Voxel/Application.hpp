@@ -4,6 +4,10 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <cmath>
+#include <random>
+#include <chrono>
+
+#include "Externals/FastNoiseLite.h"
 
 #include "src/VoxelSystem/Chunk.hpp"
 #include "src/OpenGL/ShaderProgram.hpp"

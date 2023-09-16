@@ -4,5 +4,7 @@
 
 class ChunkManager
 {
+public:
+private:
 
 };
