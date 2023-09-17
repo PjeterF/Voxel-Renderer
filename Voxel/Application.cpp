@@ -29,18 +29,18 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
+	/*glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);*/
 	glEnable(GL_DEPTH_TEST);
 }
 
 void Application::run()
 {
 	FastNoiseLite noise;
-	noise.SetSeed(200);
+	//noise.SetSeed(200);
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	Chunk::gridDimensions = 100;
+	Chunk::gridDimensions = 16*10;
 
 	std::vector<float> noiseResult;
 	for (int i = 0; i < Chunk::gridDimensions; i++)
@@ -51,7 +51,7 @@ void Application::run()
 		}
 	}
 
-	Chunk c= Chunk(0, 0);
+	Chunk c = Chunk(0, 0);
 	for (int i = 0; i < c.gridDimensions; i++)
 	{
 		for (int j = 0; j < c.gridDimensions; j++)
@@ -114,16 +114,21 @@ void Application::run()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		//camera->lookAtFront();
+		auto timeStart = std::chrono::high_resolution_clock::now();
+
+		camera->lookAtFront();
 		//camera->lookAt(0, 0, 0);
 
 		glClearColor(0.2, 0.2, 0.2, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//c.draw(instancedCubeRenderer);
-		//c2.draw(instancedCubeRenderer);
-		m.draw(camera);
-		m2.draw(camera);
+		float T = 1;
+		float sine = sin(glfwGetTime() / T);
+		float cosine = cos(glfwGetTime() / T);
+
+		m.draw(camera, glm::vec3(sine, cosine, 0));
+
+		//instancedCubeRenderer->commisionInstance(100 * sine, 100, 100 * cosine, 10, 0.8, 0.3, 0, 1);
 
 		instancedCubeRenderer->drawInstances();
 
@@ -131,5 +136,11 @@ void Application::run()
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		auto timeEnd = std::chrono::high_resolution_clock::now();
+
+		auto frameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
+
+		glfwSetWindowTitle(window, std::to_string(frameDuration).c_str());
 	}
 }

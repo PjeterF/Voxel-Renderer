@@ -121,10 +121,10 @@ void Chunk::createMesh()
 					{
 						if (voxels[i][j][k + 1].type == Voxel::AIR)
 						{
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i, j+1, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i+1, j+1, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i+1, j, k + 1), voxels[i][j][k].color));
+							meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1), voxels[i][j][k].color, glm::vec3(0, 0, 1)));
+							meshVertices.push_back(Vertex(glm::vec3(i, j+1, k + 1), voxels[i][j][k].color, glm::vec3(0, 0, 1)));
+							meshVertices.push_back(Vertex(glm::vec3(i+1, j+1, k + 1), voxels[i][j][k].color, glm::vec3(0, 0, 1)));
+							meshVertices.push_back(Vertex(glm::vec3(i+1, j, k + 1), voxels[i][j][k].color, glm::vec3(0, 0, 1)));
 
 							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
 							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
@@ -138,10 +138,10 @@ void Chunk::createMesh()
 					{
 						if (voxels[i][j][k - 1].type == Voxel::AIR)
 						{
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k), voxels[i][j][k].color));
+							meshVertices.push_back(Vertex(glm::vec3(i, j, k), voxels[i][j][k].color, glm::vec3(0, 0, -1)));
+							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k), voxels[i][j][k].color, glm::vec3(0, 0, -1)));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k), voxels[i][j][k].color, glm::vec3(0, 0, -1)));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k), voxels[i][j][k].color, glm::vec3(0, 0, -1)));
 
 							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
 							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
@@ -155,16 +155,17 @@ void Chunk::createMesh()
 					{
 						if (voxels[i][j+1][k].type == Voxel::AIR)
 						{
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k), voxels[i][j][k].color));
+							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k), voxels[i][j][k].color, glm::vec3(0, 1, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k + 1), voxels[i][j][k].color, glm::vec3(0, 1, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k + 1), voxels[i][j][k].color, glm::vec3(0, 1, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k), voxels[i][j][k].color, glm::vec3(0, 1, 0)));
 
 							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
 							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
 
 							meshIndices.push_back(index1);
 							meshIndices.push_back(index2);
+							
 						}
 					}
 					//Check left
@@ -173,10 +174,10 @@ void Chunk::createMesh()
 						if (voxels[i][j - 1][k].type == Voxel::AIR)
 						{
 
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k), voxels[i][j][k].color));
+							meshVertices.push_back(Vertex(glm::vec3(i, j, k), voxels[i][j][k].color, glm::vec3(0, -1, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1), voxels[i][j][k].color, glm::vec3(0, -1, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k + 1), voxels[i][j][k].color, glm::vec3(0, -1, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k), voxels[i][j][k].color, glm::vec3(0, -1, 0)));
 
 							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
 							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
@@ -190,10 +191,10 @@ void Chunk::createMesh()
 					{
 						if (voxels[i+1][j][k].type == Voxel::AIR)
 						{
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k), voxels[i][j][k].color));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k), voxels[i][j][k].color, glm::vec3(1, 0, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k + 1), voxels[i][j][k].color, glm::vec3(1, 0, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k + 1), voxels[i][j][k].color, glm::vec3(1, 0, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k), voxels[i][j][k].color, glm::vec3(1, 0, 0)));
 
 							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
 							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
@@ -207,10 +208,10 @@ void Chunk::createMesh()
 					{
 						if (voxels[i - 1][j][k].type == Voxel::AIR)
 						{
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k + 1), voxels[i][j][k].color));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k), voxels[i][j][k].color));
+							meshVertices.push_back(Vertex(glm::vec3(i, j, k), voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1), voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k + 1), voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
+							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k), voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
 
 							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
 							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
@@ -263,10 +264,11 @@ bool Chunk::voxelIsInFrustrum(float x, float y, float z, PerspectiveCamera* came
 	return true;
 }
 
-Chunk::Vertex::Vertex(glm::vec3 position, glm::vec4 color)
+Chunk::Vertex::Vertex(glm::vec3 position, glm::vec4 color, glm::vec3 normal)
 {
 	this->position = position;
 	this->color = color;
+	this->normal = normal;
 }
 
 Chunk::Index::Index(glm::ivec3 index)

@@ -130,5 +130,7 @@
     <None Include="src\Shaders\instancedCube.frag" />
     <None Include="src\Shaders\mesh.vert" />
     <None Include="src\Shaders\mesh.frag" />
+    <None Include="src\Shaders\shadowMap.vert" />
+    <None Include="src\Shaders\shadowMap.frag" />
   </ItemGroup>
 </Project>

@@ -184,6 +184,8 @@
     <None Include="src\Shaders\instancedCube.vert" />
     <None Include="src\Shaders\mesh.frag" />
     <None Include="src\Shaders\mesh.vert" />
+    <None Include="src\Shaders\shadowMap.frag" />
+    <None Include="src\Shaders\shadowMap.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
