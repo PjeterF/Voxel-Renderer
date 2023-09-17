@@ -18,7 +18,7 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 	setUpCallbacks(window);
 
 	ShaderProgram* cubeShad = new ShaderProgram("src/Shaders/cube.vert", "src/Shaders/cube.frag");
-	camera = new PerspectiveCamera(0, 0, 0, 45, 0.1, 100, windowWidth, windowWidth);
+	camera = new PerspectiveCamera(0, 0, 0, 45, 0.1, 500, windowWidth, windowWidth);
 	glfwSetWindowUserPointer(window, camera);
 	cubeRenderer = new CubeRenderer(camera, cubeShad->getId());
 
@@ -29,8 +29,8 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -60,7 +60,12 @@ void Application::run()
 			{
 				if (k > noiseResult[i + c.gridDimensions * j] * c.gridDimensions/5)
 				{
-					c.voxels[i][j][k].active = false;;
+					c.voxels[i][j][k].active = false;
+					c.voxels[i][j][k].type = Voxel::AIR;
+				}
+				else
+				{
+					c.voxels[i][j][k].type = Voxel::SOLID;
 				}
 				int r = rand() % 256;
 				c.voxels[i][j][k].color = glm::vec4(0, (float)r / 512+0.5, 0, 1);
@@ -79,33 +84,46 @@ void Application::run()
 		}
 	}
 	c.deactivateHiddenVoxels();
-	Chunk c2 = Chunk(0, 1);
-	for (int i = 0; i < c2.gridDimensions; i++)
+	c.createMesh();
+
+	ShaderProgram* meshShad = new ShaderProgram("src/Shaders/mesh.vert", "src/Shaders/mesh.frag");
+	//Mesh m(c.getMeshVertices()(), c.getMeshIndices(), meshShad->getId());
+	Mesh m(c.getMeshVertices(), c.getMeshIndices(), meshShad->getId());
+
+	std::vector<float> vert =
 	{
-		for (int j = 0; j < c2.gridDimensions; j++)
-		{
-			for (int k = 0; k < c2.gridDimensions; k++)
-			{
-				if (k > noiseResult[i + c2.gridDimensions * j] * c2.gridDimensions)
-				{
-					c2.voxels[i][j][k].active = false;;
-				}
-				int r = rand() % 256;
-				c2.voxels[i][j][k].color = glm::vec4(1, (float)r / 300, (float)r / 600, 1);
-			}
-		}
-	}
-	c2.deactivateHiddenVoxels();
+		-1, -1, 0, 1, 1, 1, 1,
+		-1, 1, 0, 1, 1, 1, 1,
+		50, 1, 0, 1, 1, 1, 1,
+		1, -1, 0, 1, 1, 1, 1,
+		-2, -2, 0, 1, 1, 1, 1,
+		-2, 0, 0, 1, 1, 1, 1,
+		0, 0, 0, 1, 1, 1, 1,
+		0, -2, 0, 1, 1, 1, 1,
+	};
+
+	std::vector<int> indices =
+	{
+		0, 1, 2,
+		0, 2, 3,
+		4, 5, 6,
+		4, 6, 7,
+	};
+
+	Mesh m2(vert, indices, meshShad->getId());
 
 	while (!glfwWindowShouldClose(window))
 	{
-		camera->lookAtFront();
+		//camera->lookAtFront();
+		//camera->lookAt(0, 0, 0);
 
 		glClearColor(0.2, 0.2, 0.2, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		c.draw(instancedCubeRenderer);
-		c2.draw(instancedCubeRenderer);
+		//c.draw(instancedCubeRenderer);
+		//c2.draw(instancedCubeRenderer);
+		m.draw(camera);
+		m2.draw(camera);
 
 		instancedCubeRenderer->drawInstances();
 

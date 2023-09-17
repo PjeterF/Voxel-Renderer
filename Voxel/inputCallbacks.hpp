@@ -94,6 +94,11 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		camera->move(PerspectiveCamera::UP, step);
 	}
 	break;
+	case GLFW_KEY_Q:
+	{
+		camera->lookAt(0, 0, 0);
+	}
+	break;
 	}
 	if (mods == GLFW_MOD_CONTROL)
 	{

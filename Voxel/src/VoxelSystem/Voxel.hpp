@@ -8,7 +8,8 @@ public:
 	enum TYPE
 	{
 		AIR = 0,
-		RED, GREEN, BLUE
+		SOLID,
+		LIQUID
 	};
 	Voxel(Voxel::TYPE type = AIR, bool active = true);
 	~Voxel();

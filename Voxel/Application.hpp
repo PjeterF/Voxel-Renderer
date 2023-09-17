@@ -13,6 +13,7 @@
 #include "src/OpenGL/ShaderProgram.hpp"
 #include "src/Rendering/CubeRenderer.hpp"
 #include "src/Rendering/InstancedCubeRenderer.hpp"
+#include "src/Rendering/Mesh.hpp"
 
 class Application
 {

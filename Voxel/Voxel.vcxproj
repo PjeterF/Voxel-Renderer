@@ -150,6 +150,7 @@
     <ClCompile Include="src\OpenGL\VertexBuffer.cpp" />
     <ClCompile Include="src\Rendering\CubeRenderer.cpp" />
     <ClCompile Include="src\Rendering\InstancedCubeRenderer.cpp" />
+    <ClCompile Include="src\Rendering\Mesh.cpp" />
     <ClCompile Include="src\Rendering\PerspectiveCamera.cpp" />
     <ClCompile Include="test.hpp" />
     <ClCompile Include="src\VoxelSystem\Chunk.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="src\OpenGL\VertexBuffer.hpp" />
     <ClInclude Include="src\Rendering\CubeRenderer.hpp" />
     <ClInclude Include="src\Rendering\InstancedCubeRenderer.hpp" />
+    <ClInclude Include="src\Rendering\Mesh.hpp" />
     <ClInclude Include="src\Rendering\PerspectiveCamera.hpp" />
     <ClInclude Include="src\VoxelSystem\Chunk.hpp" />
     <ClInclude Include="src\VoxelSystem\ChunkManager.hpp" />
@@ -180,6 +182,8 @@
     <None Include="src\Shaders\cube.vert" />
     <None Include="src\Shaders\instancedCube.frag" />
     <None Include="src\Shaders\instancedCube.vert" />
+    <None Include="src\Shaders\mesh.frag" />
+    <None Include="src\Shaders\mesh.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
