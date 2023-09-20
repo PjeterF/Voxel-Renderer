@@ -3,9 +3,9 @@ precision highp float;
 
 layout(location = 0) in vec3 modelPos;
 
-uniform mat4 PV;
+uniform mat4 lightTransform;
 
 void main()
 {
-	gl_Position = PV * vec4(modelPos, 1);
+	gl_Position = lightTransform * vec4(modelPos, 1);
 }

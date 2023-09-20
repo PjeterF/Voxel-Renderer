@@ -18,7 +18,7 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 	setUpCallbacks(window);
 
 	ShaderProgram* cubeShad = new ShaderProgram("src/Shaders/cube.vert", "src/Shaders/cube.frag");
-	camera = new PerspectiveCamera(0, 0, 0, 45, 0.1, 500, windowWidth, windowWidth);
+	camera = new PerspectiveCamera(0, 0, 0, 45, 0.5, 500, windowWidth, windowWidth);
 	glfwSetWindowUserPointer(window, camera);
 	cubeRenderer = new CubeRenderer(camera, cubeShad->getId());
 
@@ -32,15 +32,24 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 	/*glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);*/
 	glEnable(GL_DEPTH_TEST);
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 300 es");
+
+	debugMenu = new DebugMenu(camera);
 }
 
 void Application::run()
 {
 	FastNoiseLite noise;
-	//noise.SetSeed(200);
+	noise.SetSeed(102);
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	Chunk::gridDimensions = 16*10;
+	Chunk::gridDimensions = 16*20;
 
 	std::vector<float> noiseResult;
 	for (int i = 0; i < Chunk::gridDimensions; i++)
@@ -58,7 +67,7 @@ void Application::run()
 		{
 			for (int k = 0; k < c.gridDimensions; k++)
 			{
-				if (k > noiseResult[i + c.gridDimensions * j] * c.gridDimensions/5)
+				if (k > noiseResult[i + c.gridDimensions * j] * c.gridDimensions/10 && k!=0)
 				{
 					c.voxels[i][j][k].active = false;
 					c.voxels[i][j][k].type = Voxel::AIR;
@@ -68,7 +77,7 @@ void Application::run()
 					c.voxels[i][j][k].type = Voxel::SOLID;
 				}
 				int r = rand() % 256;
-				c.voxels[i][j][k].color = glm::vec4(0, (float)r / 512+0.5, 0, 1);
+				c.voxels[i][j][k].color = glm::vec4(0, 0.5*((float)r / 512+0.5), 0, 1);
 
 				r = rand() % 256;
 				if (r > 200)
@@ -83,12 +92,29 @@ void Application::run()
 			}
 		}
 	}
+	for (int n = 0; n < 100; n++)
+	{
+		int rx = rand() % Chunk::gridDimensions;
+		int ry = rand() % Chunk::gridDimensions;
+
+		int height = 5;
+		for (int z = 0; z < Chunk::gridDimensions; z++)
+		{
+			if (c.voxels[rx][ry][z].type == Voxel::AIR)
+			{
+				c.voxels[rx][ry][z].type = Voxel::SOLID;
+				c.voxels[rx][ry][z].color = glm::vec4(0.5, 0.5, 0.5, 1);
+				if (--height == 0)
+					break;
+			}
+		}
+	}
 	c.deactivateHiddenVoxels();
 	c.createMesh();
 
 	ShaderProgram* meshShad = new ShaderProgram("src/Shaders/mesh.vert", "src/Shaders/mesh.frag");
-	//Mesh m(c.getMeshVertices()(), c.getMeshIndices(), meshShad->getId());
-	Mesh m(c.getMeshVertices(), c.getMeshIndices(), meshShad->getId());
+	ShaderProgram* shadowShad = new ShaderProgram("src/Shaders/shadowMap.vert", "src/Shaders/shadowMap.frag");
+	Mesh m(c.getMeshVertices(), c.getMeshIndices(), meshShad->getId(), shadowShad->getId());
 
 	std::vector<float> vert =
 	{
@@ -110,11 +136,13 @@ void Application::run()
 		4, 6, 7,
 	};
 
-	Mesh m2(vert, indices, meshShad->getId());
-
 	while (!glfwWindowShouldClose(window))
 	{
 		auto timeStart = std::chrono::high_resolution_clock::now();
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
 		camera->lookAtFront();
 		//camera->lookAt(0, 0, 0);
@@ -126,13 +154,14 @@ void Application::run()
 		float sine = sin(glfwGetTime() / T);
 		float cosine = cos(glfwGetTime() / T);
 
-		m.draw(camera, glm::vec3(sine, cosine, 0));
-
-		//instancedCubeRenderer->commisionInstance(100 * sine, 100, 100 * cosine, 10, 0.8, 0.3, 0, 1);
+		m.draw(camera, glm::vec3(10, 0, -5));
 
 		instancedCubeRenderer->drawInstances();
 
-		//std::cout << (int)camera->getPosition().x << ", " << (int)camera->getPosition().y << ", " << (int)camera->getPosition().z << std::endl;
+		debugMenu->render();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

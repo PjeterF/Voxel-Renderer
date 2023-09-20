@@ -14,7 +14,7 @@ class Mesh
 {
 public:
 	Mesh(std::vector<float> vertices, std::vector<int> indices, GLuint meshShader);
-	Mesh(std::vector<Chunk::Vertex> vertices, std::vector<Chunk::Index> indices, GLuint shaderProgrammID);
+	Mesh(std::vector<Chunk::Vertex> vertices, std::vector<Chunk::Index> indices, GLuint meshShader, GLuint shadowShader);
 	void draw(PerspectiveCamera* camera, glm::vec3 lightDirection);
 private:
 	int vertexCount;
@@ -25,4 +25,5 @@ private:
 	GLuint EBO;
 
 	GLuint meshShader;
+	GLuint shadowShader;
 };

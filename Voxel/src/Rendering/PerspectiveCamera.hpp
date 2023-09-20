@@ -28,6 +28,10 @@ public:
 	void turn(DIRECTION direction, float degrees);
 	void move(DIRECTION direction, float distance);
 	const std::vector<Plane>& getPlanes();
+
+	float fov;
+	float nearPlane, farPlane;
+	float width, height;
 private:
 	void calculateMatrices();
 	void calculateViewMatrix();
@@ -39,9 +43,6 @@ private:
 	glm::vec3 upDirection = glm::vec3(0, 0, 1);
 	glm::vec3 rightDirection = glm::vec3(0, -1, 0);
 	glm::vec3 lookAtPoint = glm::vec3(0, 0, 0);
-	float fov;
-	float nearPlane, farPlane;
-	float width, height;
 
 	glm::mat4 projection;
 	glm::mat4 view;
