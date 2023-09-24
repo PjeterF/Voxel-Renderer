@@ -46,95 +46,91 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 void Application::run()
 {
 	FastNoiseLite noise;
-	noise.SetSeed(102);
+	//noise.SetSeed(102);
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	Chunk::gridDimensions = 16*20;
+	Chunk::chunkResolution = 16*16;
 
 	std::vector<float> noiseResult;
-	for (int i = 0; i < Chunk::gridDimensions; i++)
+	for (int i = 0; i < Chunk::chunkResolution; i++)
 	{
-		for (int j = 0; j < Chunk::gridDimensions; j++)
+		for (int j = 0; j < Chunk::chunkResolution; j++)
 		{
 			noiseResult.push_back(noise.GetNoise((float)i, (float)j));
 		}
 	}
 
+	ShaderProgram* meshShad = new ShaderProgram("src/Shaders/mesh.vert", "src/Shaders/mesh.frag");
+	ShaderProgram* shadowShad = new ShaderProgram("src/Shaders/shadowMap.vert", "src/Shaders/shadowMap.frag");
+
 	Chunk c = Chunk(0, 0);
-	for (int i = 0; i < c.gridDimensions; i++)
+	for (int i = 0; i < c.chunkResolution; i++)
 	{
-		for (int j = 0; j < c.gridDimensions; j++)
+		for (int j = 0; j < c.chunkResolution; j++)
 		{
-			for (int k = 0; k < c.gridDimensions; k++)
+			for (int k = 0; k < c.chunkResolution; k++)
 			{
-				if (k > noiseResult[i + c.gridDimensions * j] * c.gridDimensions/10 && k!=0)
+				if (k > noise.GetNoise((float)i, (float)j) * c.chunkResolution/20 && k!=0)
 				{
-					c.voxels[i][j][k].active = false;
 					c.voxels[i][j][k].type = Voxel::AIR;
 				}
 				else
 				{
 					c.voxels[i][j][k].type = Voxel::SOLID;
+
+					int r = rand() % 256;
+					if (r > 250)
+						c.voxels[i][j][k].color = 0.5f * glm::vec4(0.54, 0.26, 0.07, 1);
+					else
+						c.voxels[i][j][k].color = glm::vec4(0, 0.2 * ((float)r / 512 + 0.5), 0, 1);
 				}
-				int r = rand() % 256;
-				c.voxels[i][j][k].color = glm::vec4(0, 0.5*((float)r / 512+0.5), 0, 1);
-
-				r = rand() % 256;
-				if (r > 200)
-					c.voxels[i][j][k].color = glm::vec4(0.54, 0.26, 0.07, 1);
-
-				if (c.voxels[i][j][k].active == false && k < 5 && k !=0)
-				{
-					c.voxels[i][j][k].active = true;
-					c.voxels[i][j][k].color = glm::vec4(0, 0.4, (float)r / 256+0.5, 0.7);
-				}
-
 			}
 		}
 	}
 	for (int n = 0; n < 100; n++)
 	{
-		int rx = rand() % Chunk::gridDimensions;
-		int ry = rand() % Chunk::gridDimensions;
+		int rx = rand() % Chunk::chunkResolution;
+		int ry = rand() % Chunk::chunkResolution;
 
 		int height = 5;
-		for (int z = 0; z < Chunk::gridDimensions; z++)
+		for (int z = 0; z < Chunk::chunkResolution; z++)
 		{
 			if (c.voxels[rx][ry][z].type == Voxel::AIR)
 			{
 				c.voxels[rx][ry][z].type = Voxel::SOLID;
-				c.voxels[rx][ry][z].color = glm::vec4(0.5, 0.5, 0.5, 1);
+				c.voxels[rx][ry][z].color = glm::vec4(0.3, 0.3, 0.3, 1);
 				if (--height == 0)
 					break;
 			}
 		}
 	}
-	c.deactivateHiddenVoxels();
-	c.createMesh();
+	c.createMesh(meshShad->getId(), shadowShad->getId());
 
-	ShaderProgram* meshShad = new ShaderProgram("src/Shaders/mesh.vert", "src/Shaders/mesh.frag");
-	ShaderProgram* shadowShad = new ShaderProgram("src/Shaders/shadowMap.vert", "src/Shaders/shadowMap.frag");
-	Mesh m(c.getMeshVertices(), c.getMeshIndices(), meshShad->getId(), shadowShad->getId());
-
-	std::vector<float> vert =
+	Chunk c2(0, 1);
+	for (int i = 0; i < c2.chunkResolution; i++)
 	{
-		-1, -1, 0, 1, 1, 1, 1,
-		-1, 1, 0, 1, 1, 1, 1,
-		50, 1, 0, 1, 1, 1, 1,
-		1, -1, 0, 1, 1, 1, 1,
-		-2, -2, 0, 1, 1, 1, 1,
-		-2, 0, 0, 1, 1, 1, 1,
-		0, 0, 0, 1, 1, 1, 1,
-		0, -2, 0, 1, 1, 1, 1,
-	};
+		for (int j = 0; j < c2.chunkResolution; j++)
+		{
+			for (int k = 0; k < c2.chunkResolution; k++)
+			{
+				if (k > noise.GetNoise((float)i, (float)j + c2.chunkResolution) * c2.chunkResolution / 20 && k != 0)
+				{
+					c2.voxels[i][j][k].type = Voxel::AIR;
+				}
+				else
+				{
+					c2.voxels[i][j][k].type = Voxel::SOLID;
 
-	std::vector<int> indices =
-	{
-		0, 1, 2,
-		0, 2, 3,
-		4, 5, 6,
-		4, 6, 7,
-	};
+					int r = rand() % 256;
+					if (r > 250)
+						c2.voxels[i][j][k].color = 0.5f * glm::vec4(0.54, 0.26, 0.07, 1);
+					else
+						c2.voxels[i][j][k].color = glm::vec4(0, 0.2 * ((float)r / 512 + 0.5), 0, 1);
+				}
+			}
+		}
+	}
+	c2.createMesh(meshShad->getId(), shadowShad->getId());
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -145,18 +141,17 @@ void Application::run()
 		ImGui::NewFrame();
 
 		camera->lookAtFront();
-		//camera->lookAt(0, 0, 0);
-
+		
 		glClearColor(0.2, 0.2, 0.2, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		float T = 1;
+		float T = 10;
 		float sine = sin(glfwGetTime() / T);
 		float cosine = cos(glfwGetTime() / T);
 
-		m.draw(camera, glm::vec3(10, 0, -5));
-
-		instancedCubeRenderer->drawInstances();
+		static int i = 0;
+		c.draw(camera, glm::vec3(sine, cosine, -0.2), glm::vec2(c.getCoordinates().x * c.chunkResolution, c.getCoordinates().y * c.chunkResolution));
+		c2.draw(camera, glm::vec3(sine, cosine, -0.2), glm::vec2(c2.getCoordinates().x * c2.chunkResolution, c2.getCoordinates().y * c2.chunkResolution));
 
 		debugMenu->render();
 

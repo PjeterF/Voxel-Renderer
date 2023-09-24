@@ -10,7 +10,7 @@ out vec4 finalColor;
 
 void main()
 {
-	float bias = 0.005;
+	float bias = 0.002;
 	float visibility = 1.0;
 	if ( texture(shadowMap, shadowCoord.xy).z < shadowCoord.z - bias)
 	{
@@ -18,5 +18,4 @@ void main()
 	}
 
 	finalColor = vec4(visibility * vec3(fragColor), 1);
-	//finalColor = vec4(vec3(gl_FragCoord.z), 1);
 }

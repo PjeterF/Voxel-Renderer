@@ -15,7 +15,8 @@ class Mesh
 public:
 	Mesh(std::vector<float> vertices, std::vector<int> indices, GLuint meshShader);
 	Mesh(std::vector<Chunk::Vertex> vertices, std::vector<Chunk::Index> indices, GLuint meshShader, GLuint shadowShader);
-	void draw(PerspectiveCamera* camera, glm::vec3 lightDirection);
+	void draw(PerspectiveCamera* camera, glm::vec3 lightPosition, glm::vec3 lightLookAtPoint, glm::vec2 chunkOffset);
+	//void draw(PerspectiveCamera* camera, glm::vec3 lightPosition, glm::vec3 lightLookAtPoint, glm::vec2 chunkOffset);
 private:
 	int vertexCount;
 	int indexCount;

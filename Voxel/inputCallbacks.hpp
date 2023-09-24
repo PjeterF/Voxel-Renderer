@@ -6,6 +6,8 @@
 #include "src/Rendering/PerspectiveCamera.hpp"
 
 static bool cameraLocked = false;
+bool setCamera = false;
+glm::vec3 camDir(0, 0, 0);
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
@@ -21,21 +23,8 @@ void setUpCallbacks(GLFWwindow* window)
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	PerspectiveCamera* camera = (PerspectiveCamera *)glfwGetWindowUserPointer(window);
-	static float step = 0.5;
+	static float step = 10;
 	static float degree = 5;
-
-	if (mods == GLFW_MOD_ALT)
-	{
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		cameraLocked = true;
-	}	
-	else
-	{
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		cameraLocked = false;
-	}
-
-	
 
 	switch (key)
 	{
@@ -100,9 +89,22 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	}
 	break;
 	}
+
 	if (mods == GLFW_MOD_CONTROL)
 	{
 		camera->move(PerspectiveCamera::DOWN, step);
+	}
+
+	if (mods == GLFW_MOD_ALT)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		cameraLocked = true;
+	}
+	else
+	{
+		camDir = camera->getDirection();
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		cameraLocked = false;
 	}
 }
 

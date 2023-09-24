@@ -1,66 +1,51 @@
 #include "Chunk.hpp"
 #include "Voxel.hpp"
 
-int Chunk::gridDimensions = 16;
+#include <unordered_map>
+#include <array>
+
+#include "../Rendering/Mesh.hpp"
+
+int Chunk::chunkResolution = 16;
 int Chunk::voxelSize = 1;
 
 Chunk::Chunk(int x, int y)
 {
 	this->coord = glm::vec2(x, y);
 
-	voxels = new Voxel**[gridDimensions];
-	for (int i = 0; i < gridDimensions; i++)
+	voxels = new Voxel**[chunkResolution];
+	for (int i = 0; i < chunkResolution; i++)
 	{
-		voxels[i] = new Voxel*[gridDimensions];
-		for (int j = 0; j < gridDimensions; j++)
+		voxels[i] = new Voxel*[chunkResolution];
+		for (int j = 0; j < chunkResolution; j++)
 		{
-			voxels[i][j] = new Voxel[gridDimensions];
+			voxels[i][j] = new Voxel[chunkResolution];
 		}
 	}
 }
 
-void Chunk::draw(InstancedCubeRenderer* renderer)
+void Chunk::draw(PerspectiveCamera* camera, glm::vec3 lightDirection, glm::vec2 chunkOffset)
 {
-	int offsetX = gridDimensions * coord.x;
-	int offsetY = gridDimensions * coord.y;
+	if (mesh == nullptr)
+		return;
+	
+	lightDirection = glm::normalize(lightDirection);
 
-	for (int i = 0; i < gridDimensions; i++)
-	{
-		for (int j = 0; j < gridDimensions; j++)
-		{
-			for (int k = 0; k < gridDimensions; k++)
-			{
-				if (voxels[i][j][k].active)
-				{
-					/*if (voxelIsInFrustrum(i + offsetX, j + offsetY, k, renderer->getCamera()))
-					{
-						renderer->commisionInstance
-						(
-							i + offsetX, j + offsetY, k,
-							voxelSize,
-							voxels[i][j][k].color.x, voxels[i][j][k].color.y, voxels[i][j][k].color.z, voxels[i][j][k].color.w
-						);
-					}*/
-					renderer->commisionInstance
-					(
-						i + offsetX, j + offsetY, k,
-						voxelSize,
-						voxels[i][j][k].color.x, voxels[i][j][k].color.y, voxels[i][j][k].color.z, voxels[i][j][k].color.w
-					);
-				}
-			}
-		}
-	}
+	float halfResolution= chunkResolution / 2;
+	glm::vec3 lightPosition = glm::vec3(halfResolution, halfResolution, halfResolution) - 1.5f * halfResolution * glm::vec3(lightDirection);
+	glm::vec3 lightLookAt = lightPosition + lightDirection;
+
+	mesh->draw(camera, lightPosition, lightLookAt, chunkOffset);
 }
 
 void Chunk::deactivateHiddenVoxels()
 {
 	std::vector<glm::ivec3> hiddenVoxels;
-	for (int i = 0; i < gridDimensions; i++)
+	for (int i = 0; i < chunkResolution; i++)
 	{
-		for (int j = 0; j < gridDimensions; j++)
+		for (int j = 0; j < chunkResolution; j++)
 		{
-			for (int k = 0; k < gridDimensions; k++)
+			for (int k = 0; k < chunkResolution; k++)
 			{
 				if (voxelIsCovered(i ,j, k))
 				{
@@ -77,11 +62,11 @@ void Chunk::deactivateHiddenVoxels()
 
 bool Chunk::voxelIsCovered(int x, int y, int z)
 {
-	if (x == 0 || x == gridDimensions - 1)
+	if (x == 0 || x == chunkResolution - 1)
 		return false;
-	if (y == 0 || y == gridDimensions - 1)
+	if (y == 0 || y == chunkResolution - 1)
 		return false;
-	if (z == 0 || z == gridDimensions - 1)
+	if (z == 0 || z == chunkResolution - 1)
 		return false;
 
 	int count = 0;
@@ -104,20 +89,20 @@ bool Chunk::voxelIsCovered(int x, int y, int z)
 		return false;
 }
 
-void Chunk::createMesh()
+void Chunk::createMesh(GLuint meshShader, GLuint shadowMapShader)
 {
 	meshVertices.clear();
 	meshIndices.clear();
-	for (int i = 0; i < gridDimensions; i++)
+	for (int i = 0; i < chunkResolution; i++)
 	{
-		for (int j = 0; j < gridDimensions; j++)
+		for (int j = 0; j < chunkResolution; j++)
 		{
-			for (int k = 0; k < gridDimensions; k++)
+			for (int k = 0; k < chunkResolution; k++)
 			{
 				if (voxels[i][j][k].type != Voxel::AIR)
 				{
 					//Check top
-					if (k + 1 < gridDimensions)
+					if (k + 1 < chunkResolution)
 					{
 						if (voxels[i][j][k + 1].type == Voxel::AIR)
 						{
@@ -134,7 +119,7 @@ void Chunk::createMesh()
 						}
 					}
 					//Check bottom
-					if (k - 1 > 0)
+					if (k - 1 >= 0)
 					{
 						if (voxels[i][j][k - 1].type == Voxel::AIR)
 						{
@@ -151,7 +136,7 @@ void Chunk::createMesh()
 						}
 					}
 					//Check right
-					if (j + 1 < gridDimensions)
+					if (j + 1 < chunkResolution)
 					{
 						if (voxels[i][j+1][k].type == Voxel::AIR)
 						{
@@ -169,7 +154,7 @@ void Chunk::createMesh()
 						}
 					}
 					//Check left
-					if (j - 1 > 0)
+					if (j - 1 >= 0)
 					{
 						if (voxels[i][j - 1][k].type == Voxel::AIR)
 						{
@@ -187,7 +172,7 @@ void Chunk::createMesh()
 						}
 					}
 					//Check front
-					if (i + 1 < gridDimensions)
+					if (i + 1 < chunkResolution)
 					{
 						if (voxels[i+1][j][k].type == Voxel::AIR)
 						{
@@ -204,7 +189,7 @@ void Chunk::createMesh()
 						}
 					}
 					//Check back
-					if (i - 1 > 0)
+					if (i - 1 >= 0)
 					{
 						if (voxels[i - 1][j][k].type == Voxel::AIR)
 						{
@@ -224,18 +209,14 @@ void Chunk::createMesh()
 			}
 		}
 	}
-	testMesh.clear();
-	for (auto vertex : meshVertices)
-	{
-		testMesh.push_back(vertex.position.x);
-		testMesh.push_back(vertex.position.y);
-		testMesh.push_back(vertex.position.z);
 
-		testMesh.push_back(vertex.color.x);
-		testMesh.push_back(vertex.color.y);
-		testMesh.push_back(vertex.color.z);
-		testMesh.push_back(vertex.color.w);
-	}
+	delete mesh;
+	mesh = new Mesh(meshVertices, meshIndices, meshShader, shadowMapShader);
+}
+
+glm::vec2 Chunk::getCoordinates()
+{
+	return coord;
 }
 
 std::vector<Chunk::Vertex> Chunk::getMeshVertices()
@@ -243,25 +224,19 @@ std::vector<Chunk::Vertex> Chunk::getMeshVertices()
 	return meshVertices;
 }
 
-std::vector<float> Chunk::getTestMesh()
-{
-	return testMesh;
-}
-
 std::vector<Chunk::Index> Chunk::getMeshIndices()
 {
 	return meshIndices;
 }
 
-bool Chunk::voxelIsInFrustrum(float x, float y, float z, PerspectiveCamera* camera)
+bool Chunk::voxelIsSolid(int x, int y, int z)
 {
-	for (auto plane : camera->getPlanes())
+	if (x >= 0 && y >= 0 && z >= 0 && x < chunkResolution && y < chunkResolution && z < chunkResolution)
 	{
-		float distance = glm::dot(plane.normal, glm::vec3(x, y, z) - plane.point);
-		if (distance < 0)
-			return false;
+		if (voxels[x][y][z].type != Voxel::AIR)
+			return true;
 	}
-	return true;
+	return false;
 }
 
 Chunk::Vertex::Vertex(glm::vec3 position, glm::vec4 color, glm::vec3 normal)

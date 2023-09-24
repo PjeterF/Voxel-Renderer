@@ -162,8 +162,8 @@
     <ClCompile Include="src\Rendering\Mesh.cpp" />
     <ClCompile Include="src\Rendering\PerspectiveCamera.cpp" />
     <ClCompile Include="src\Rendering\ShadowMapFBO.cpp" />
-    <ClCompile Include="test.hpp" />
     <ClCompile Include="src\VoxelSystem\Chunk.cpp" />
+    <ClCompile Include="src\VoxelSystem\ChunkManager.cpp" />
     <ClCompile Include="src\VoxelSystem\Voxel.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -513,6 +513,13 @@
     <ClInclude Include="Externals\includes\nlohmann\ordered_map.hpp" />
     <ClInclude Include="Externals\includes\nlohmann\thirdparty\hedley\hedley.hpp" />
     <ClInclude Include="Externals\includes\nlohmann\thirdparty\hedley\hedley_undef.hpp" />
+    <ClInclude Include="Externals\includes\Octree\array.h" />
+    <ClInclude Include="Externals\includes\Octree\array2d.h" />
+    <ClInclude Include="Externals\includes\Octree\numtraits.h" />
+    <ClInclude Include="Externals\includes\Octree\octree.h" />
+    <ClInclude Include="Externals\includes\Octree\point3d.h" />
+    <ClInclude Include="Externals\includes\Octree\shareddata.h" />
+    <ClInclude Include="Externals\includes\Octree\tinyvector.h" />
     <ClInclude Include="Externals\stb_image.h" />
     <ClInclude Include="src\GUI\DebugMenu.hpp" />
     <ClInclude Include="src\OpenGL\ElementBuffer.hpp" />
@@ -528,6 +535,7 @@
     <ClInclude Include="src\Rendering\Mesh.hpp" />
     <ClInclude Include="src\Rendering\PerspectiveCamera.hpp" />
     <ClInclude Include="src\Rendering\ShadowMapFBO.hpp" />
+    <ClInclude Include="src\Utility\Utility.hpp" />
     <ClInclude Include="src\VoxelSystem\Chunk.hpp" />
     <ClInclude Include="src\VoxelSystem\ChunkManager.hpp" />
     <ClInclude Include="inputCallbacks.hpp" />
@@ -670,6 +678,8 @@
     <None Include="Externals\includes\glm\gtx\vector_angle.inl" />
     <None Include="Externals\includes\glm\gtx\vector_query.inl" />
     <None Include="Externals\includes\glm\gtx\wrap.inl" />
+    <None Include="Externals\includes\Octree\Makefile" />
+    <None Include="Externals\includes\Octree\octree.tcc" />
     <None Include="src\Shaders\cube.frag" />
     <None Include="src\Shaders\cube.vert" />
     <None Include="src\Shaders\instancedCube.frag" />
@@ -678,6 +688,10 @@
     <None Include="src\Shaders\mesh.vert" />
     <None Include="src\Shaders\shadowMap.frag" />
     <None Include="src\Shaders\shadowMap.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Externals\includes\Octree\License.txt" />
+    <Text Include="Externals\includes\Octree\Readme.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

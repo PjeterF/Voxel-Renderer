@@ -7,24 +7,17 @@ layout(location = 2) in vec3 normal;
 
 uniform mat4 projection;
 uniform mat4 view;
-uniform vec3 lightDirection;
 uniform mat4 lightTransform;
+uniform vec2 positionOffset;
 
 out vec4 fragColor;
 out vec4 shadowCoord;
 
 void main()
 {
-	float colorScale = dot(normal, -lightDirection);
+	vec3 finalPos = vec3(pos.x+positionOffset.x, pos.y+positionOffset.y, pos.z);
 
-	if(colorScale<0.0)
-	{
-		colorScale=0.0;
-	}
-
-	colorScale = 0.8;
-
-	fragColor = vec4(colorScale * vec3(color.x, color.y, color.z), color.w);
-	gl_Position = projection * view * vec4(pos, 1.0);
+	fragColor = vec4(vec3(color.x, color.y, color.z), color.w);
+	gl_Position = projection * view * vec4(finalPos, 1.0);
 	shadowCoord = lightTransform * vec4(pos,1);
 }

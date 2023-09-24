@@ -5,6 +5,8 @@
 
 #include <vector>;
 
+class Mesh;
+
 class Chunk
 {
 public:
@@ -21,23 +23,23 @@ public:
 		glm::ivec3 index;
 	};
 	Chunk(int x, int y);
-	void draw(InstancedCubeRenderer* renderer);
+	void draw(PerspectiveCamera* camera, glm::vec3 lightDirection, glm::vec2 chunkOffset);
 	void deactivateHiddenVoxels();
-	void createMesh();
+	void createMesh(GLuint meshShader, GLuint shadowMapShader);
+	glm::vec2 getCoordinates();
 	std::vector<Vertex> getMeshVertices();
-	std::vector<float> getTestMesh();
 	std::vector<Index> getMeshIndices();
 
-	static int gridDimensions;
+	static int chunkResolution;
 	static int voxelSize;
 	Voxel*** voxels;
 private:
 	bool voxelIsCovered(int x, int y, int z);
-	bool voxelIsInFrustrum(float x, float y, float z, PerspectiveCamera* camera);
+	bool voxelIsSolid(int x, int y, int z);
 
 	std::vector<glm::ivec3> activeVoxels;
 	glm::vec2 coord;
 	std::vector<Index> meshIndices;
 	std::vector<Vertex> meshVertices;
-	std::vector<float> testMesh;
+	Mesh* mesh=nullptr;
 };
