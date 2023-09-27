@@ -1,2 +1,2 @@
 # Voxel
-![showcase](Voxel/VoxelForest.png)
+![showcase](VoxelForest.png)
