@@ -20,6 +20,7 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 	ShaderProgram* cubeShad = new ShaderProgram("src/Shaders/cube.vert", "src/Shaders/cube.frag");
 	camera = new PerspectiveCamera(0, 0, 0, 45, 0.5, 500, windowWidth, windowWidth);
 	glfwSetWindowUserPointer(window, camera);
+	objectpool.camera = camera;
 	cubeRenderer = new CubeRenderer(camera, cubeShad->getId());
 
 	camera->setPosition(20, 20, 20);
@@ -49,7 +50,7 @@ void Application::run()
 	//noise.SetSeed(102);
 	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
-	Chunk::chunkResolution = 16*16;
+	Chunk::chunkResolution = 20*2;
 
 	std::vector<float> noiseResult;
 	for (int i = 0; i < Chunk::chunkResolution; i++)
@@ -63,74 +64,17 @@ void Application::run()
 	ShaderProgram* meshShad = new ShaderProgram("src/Shaders/mesh.vert", "src/Shaders/mesh.frag");
 	ShaderProgram* shadowShad = new ShaderProgram("src/Shaders/shadowMap.vert", "src/Shaders/shadowMap.frag");
 
-	Chunk c = Chunk(0, 0);
-	for (int i = 0; i < c.chunkResolution; i++)
-	{
-		for (int j = 0; j < c.chunkResolution; j++)
-		{
-			for (int k = 0; k < c.chunkResolution; k++)
-			{
-				if (k > noise.GetNoise((float)i, (float)j) * c.chunkResolution/20 && k!=0)
-				{
-					c.voxels[i][j][k].type = Voxel::AIR;
-				}
-				else
-				{
-					c.voxels[i][j][k].type = Voxel::SOLID;
+	chunkManager = new ChunkManager(1, shadowShad->getId(), meshShad->getId());
+	objectpool.manager = chunkManager;
 
-					int r = rand() % 256;
-					if (r > 250)
-						c.voxels[i][j][k].color = 0.5f * glm::vec4(0.54, 0.26, 0.07, 1);
-					else
-						c.voxels[i][j][k].color = glm::vec4(0, 0.2 * ((float)r / 512 + 0.5), 0, 1);
-				}
-			}
+	for (int x = -10; x < 10; x++)
+	{
+		for (int y = -10; y < 10; y++)
+		{
+			chunkManager->generateChunk(x, y, 102);
 		}
 	}
-	for (int n = 0; n < 100; n++)
-	{
-		int rx = rand() % Chunk::chunkResolution;
-		int ry = rand() % Chunk::chunkResolution;
-
-		int height = 5;
-		for (int z = 0; z < Chunk::chunkResolution; z++)
-		{
-			if (c.voxels[rx][ry][z].type == Voxel::AIR)
-			{
-				c.voxels[rx][ry][z].type = Voxel::SOLID;
-				c.voxels[rx][ry][z].color = glm::vec4(0.3, 0.3, 0.3, 1);
-				if (--height == 0)
-					break;
-			}
-		}
-	}
-	c.createMesh(meshShad->getId(), shadowShad->getId());
-
-	Chunk c2(0, 1);
-	for (int i = 0; i < c2.chunkResolution; i++)
-	{
-		for (int j = 0; j < c2.chunkResolution; j++)
-		{
-			for (int k = 0; k < c2.chunkResolution; k++)
-			{
-				if (k > noise.GetNoise((float)i, (float)j + c2.chunkResolution) * c2.chunkResolution / 20 && k != 0)
-				{
-					c2.voxels[i][j][k].type = Voxel::AIR;
-				}
-				else
-				{
-					c2.voxels[i][j][k].type = Voxel::SOLID;
-
-					int r = rand() % 256;
-					if (r > 250)
-						c2.voxels[i][j][k].color = 0.5f * glm::vec4(0.54, 0.26, 0.07, 1);
-					else
-						c2.voxels[i][j][k].color = glm::vec4(0, 0.2 * ((float)r / 512 + 0.5), 0, 1);
-				}
-			}
-		}
-	}
-	c2.createMesh(meshShad->getId(), shadowShad->getId());
+	chunkManager->generateMeshesForAllChunks();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -149,9 +93,14 @@ void Application::run()
 		float sine = sin(glfwGetTime() / T);
 		float cosine = cos(glfwGetTime() / T);
 
+		chunkManager->draw(camera);
+
 		static int i = 0;
-		c.draw(camera, glm::vec3(sine, cosine, -0.2), glm::vec2(c.getCoordinates().x * c.chunkResolution, c.getCoordinates().y * c.chunkResolution));
-		c2.draw(camera, glm::vec3(sine, cosine, -0.2), glm::vec2(c2.getCoordinates().x * c2.chunkResolution, c2.getCoordinates().y * c2.chunkResolution));
+		if (i++% 100 == 0)
+		{
+			//ChunkManager::PositionInfo posInfo; posInfo = chunkManager->raycastInstersection(camera);
+			//std::cout << posInfo.localVoxelCoord.x << " " << posInfo.localVoxelCoord.y << " " << posInfo.localVoxelCoord.z << " | " << posInfo.chunkCoord.x << " " << posInfo.chunkCoord.y << "\n";
+		}
 
 		debugMenu->render();
 

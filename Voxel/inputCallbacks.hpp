@@ -4,13 +4,21 @@
 #include <GLFW/glfw3.h>
 
 #include "src/Rendering/PerspectiveCamera.hpp"
+#include "src/VoxelSystem/ChunkManager.hpp"
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
+void mouseButttonCallback(GLFWwindow* window, int button, int action, int mods);
+struct ObjectPool
+{
+	PerspectiveCamera* camera;
+	ChunkManager* manager;
+};
 
 static bool cameraLocked = false;
 bool setCamera = false;
 glm::vec3 camDir(0, 0, 0);
-
-void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
+static ObjectPool objectpool;
 
 void setUpCallbacks(GLFWwindow* window)
 {
@@ -18,11 +26,12 @@ void setUpCallbacks(GLFWwindow* window)
 
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetCursorPosCallback(window, cursorPosCallback);
+	glfwSetMouseButtonCallback(window, mouseButttonCallback);
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	PerspectiveCamera* camera = (PerspectiveCamera *)glfwGetWindowUserPointer(window);
+	PerspectiveCamera* camera = objectpool.camera;
 	static float step = 10;
 	static float degree = 5;
 
@@ -145,4 +154,19 @@ void cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 
 	prev_x = xpos;
 	prev_y = ypos;
+}
+
+inline void mouseButttonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+	switch (button)
+	{
+	case GLFW_MOUSE_BUTTON_1:
+	{
+		if(action == GLFW_PRESS)
+			objectpool.manager->raycastInstersection(objectpool.camera);
+	}
+	break;
+	default:
+		break;
+	}
 }

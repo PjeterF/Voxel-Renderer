@@ -5,8 +5,10 @@
 #include <array>
 
 #include "../Rendering/Mesh.hpp"
+#include "ChunkManager.hpp"
 
 int Chunk::chunkResolution = 16;
+int Chunk::chunkHeight = 16*4;
 int Chunk::voxelSize = 1;
 
 Chunk::Chunk(int x, int y)
@@ -89,121 +91,149 @@ bool Chunk::voxelIsCovered(int x, int y, int z)
 		return false;
 }
 
-void Chunk::createMesh(GLuint meshShader, GLuint shadowMapShader)
+void Chunk::createMesh(GLuint meshShader, GLuint shadowMapShader, ChunkManager* manager)
 {
 	meshVertices.clear();
 	meshIndices.clear();
+
+	glm::vec3 offset(coord.x * Chunk::chunkResolution, coord.y * Chunk::chunkResolution, 0);
+
 	for (int i = 0; i < chunkResolution; i++)
 	{
 		for (int j = 0; j < chunkResolution; j++)
 		{
 			for (int k = 0; k < chunkResolution; k++)
 			{
-				if (voxels[i][j][k].type != Voxel::AIR)
+				bool faces[6] = { false, false, false, false, false, false }; // top botton right left front back
+				if (!voxelIsAir(i, j, k))
 				{
 					//Check top
 					if (k + 1 < chunkResolution)
 					{
-						if (voxels[i][j][k + 1].type == Voxel::AIR)
-						{
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1), voxels[i][j][k].color, glm::vec3(0, 0, 1)));
-							meshVertices.push_back(Vertex(glm::vec3(i, j+1, k + 1), voxels[i][j][k].color, glm::vec3(0, 0, 1)));
-							meshVertices.push_back(Vertex(glm::vec3(i+1, j+1, k + 1), voxels[i][j][k].color, glm::vec3(0, 0, 1)));
-							meshVertices.push_back(Vertex(glm::vec3(i+1, j, k + 1), voxels[i][j][k].color, glm::vec3(0, 0, 1)));
-
-							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
-							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
-
-							meshIndices.push_back(index1);
-							meshIndices.push_back(index2);
-						}
+						if (voxelIsAir(i, j, k + 1))
+							faces[0] = true;
 					}
+
 					//Check bottom
 					if (k - 1 >= 0)
 					{
-						if (voxels[i][j][k - 1].type == Voxel::AIR)
-						{
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k), voxels[i][j][k].color, glm::vec3(0, 0, -1)));
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k), voxels[i][j][k].color, glm::vec3(0, 0, -1)));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k), voxels[i][j][k].color, glm::vec3(0, 0, -1)));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k), voxels[i][j][k].color, glm::vec3(0, 0, -1)));
-
-							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
-							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
-
-							meshIndices.push_back(index1);
-							meshIndices.push_back(index2);
-						}
+						if (voxelIsAir(i, j, k-1))
+							faces[1] = true;
 					}
+
 					//Check right
 					if (j + 1 < chunkResolution)
 					{
-						if (voxels[i][j+1][k].type == Voxel::AIR)
-						{
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k), voxels[i][j][k].color, glm::vec3(0, 1, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k + 1), voxels[i][j][k].color, glm::vec3(0, 1, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k + 1), voxels[i][j][k].color, glm::vec3(0, 1, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k), voxels[i][j][k].color, glm::vec3(0, 1, 0)));
-
-							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
-							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
-
-							meshIndices.push_back(index1);
-							meshIndices.push_back(index2);
-							
-						}
+						if (voxelIsAir(i, j+1, k))
+							faces[2] = true;
 					}
+					else if (manager->isVoxelAir(coord.x, coord.y + 1, i, 0, k))
+						faces[2] = true;
+
 					//Check left
 					if (j - 1 >= 0)
 					{
-						if (voxels[i][j - 1][k].type == Voxel::AIR)
-						{
-
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k), voxels[i][j][k].color, glm::vec3(0, -1, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1), voxels[i][j][k].color, glm::vec3(0, -1, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k + 1), voxels[i][j][k].color, glm::vec3(0, -1, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k), voxels[i][j][k].color, glm::vec3(0, -1, 0)));
-
-							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
-							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
-
-							meshIndices.push_back(index1);
-							meshIndices.push_back(index2);
-						}
+						if (voxelIsAir(i, j-1, k))
+							faces[3] = true;
 					}
+					else if (manager->isVoxelAir(coord.x, coord.y - 1, i, chunkResolution - 1, k))
+						faces[3] = true;
+
 					//Check front
 					if (i + 1 < chunkResolution)
 					{
-						if (voxels[i+1][j][k].type == Voxel::AIR)
-						{
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k), voxels[i][j][k].color, glm::vec3(1, 0, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k + 1), voxels[i][j][k].color, glm::vec3(1, 0, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k + 1), voxels[i][j][k].color, glm::vec3(1, 0, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k), voxels[i][j][k].color, glm::vec3(1, 0, 0)));
-
-							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
-							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
-
-							meshIndices.push_back(index1);
-							meshIndices.push_back(index2);
-						}
+						if (voxelIsAir(i+1, j, k))
+							faces[4] = true;
 					}
+					else if (manager->isVoxelAir(coord.x + 1, coord.y, 0, j, k))
+						faces[4] = true;
+
 					//Check back
 					if (i - 1 >= 0)
 					{
-						if (voxels[i - 1][j][k].type == Voxel::AIR)
-						{
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k), voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1), voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k + 1), voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
-							meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k), voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
+						if (voxelIsAir(i-1, j, k))
+							faces[5] = true;
+					}
+					else if (manager->isVoxelAir(coord.x - 1, coord.y, chunkResolution - 1, j, k))
+						faces[5] = true;
 
-							glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
-							glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
+					if (faces[0])
+					{
+						meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1) + offset, voxels[i][j][k].color, glm::vec3(0, 0, 1)));
+						meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k + 1) + offset, voxels[i][j][k].color, glm::vec3(0, 0, 1)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k + 1) + offset, voxels[i][j][k].color, glm::vec3(0, 0, 1)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k + 1) + offset, voxels[i][j][k].color, glm::vec3(0, 0, 1)));
 
-							meshIndices.push_back(index1);
-							meshIndices.push_back(index2);
-						}
+						glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
+						glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
+
+						meshIndices.push_back(index1);
+						meshIndices.push_back(index2);
+					}
+					if (faces[1])
+					{
+						meshVertices.push_back(Vertex(glm::vec3(i, j, k) + offset, voxels[i][j][k].color, glm::vec3(0, 0, -1)));
+						meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k) + offset, voxels[i][j][k].color, glm::vec3(0, 0, -1)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k) + offset, voxels[i][j][k].color, glm::vec3(0, 0, -1)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k) + offset, voxels[i][j][k].color, glm::vec3(0, 0, -1)));
+
+						glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
+						glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
+
+						meshIndices.push_back(index1);
+						meshIndices.push_back(index2);
+					}
+					if (faces[2])
+					{
+						meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k) + offset, voxels[i][j][k].color, glm::vec3(0, 1, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k + 1) + offset, voxels[i][j][k].color, glm::vec3(0, 1, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k + 1) + offset, voxels[i][j][k].color, glm::vec3(0, 1, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k) + offset, voxels[i][j][k].color, glm::vec3(0, 1, 0)));
+
+						glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
+						glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
+
+						meshIndices.push_back(index1);
+						meshIndices.push_back(index2);
+					}
+					if (faces[3])
+					{
+						meshVertices.push_back(Vertex(glm::vec3(i, j, k) + offset, voxels[i][j][k].color, glm::vec3(0, -1, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1) + offset, voxels[i][j][k].color, glm::vec3(0, -1, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k + 1) + offset, voxels[i][j][k].color, glm::vec3(0, -1, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k) + offset, voxels[i][j][k].color, glm::vec3(0, -1, 0)));
+
+						glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
+						glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
+
+						meshIndices.push_back(index1);
+						meshIndices.push_back(index2);
+					}
+					if (faces[4])
+					{
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k) + offset, voxels[i][j][k].color, glm::vec3(1, 0, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j, k + 1) + offset, voxels[i][j][k].color, glm::vec3(1, 0, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k + 1) + offset, voxels[i][j][k].color, glm::vec3(1, 0, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i + 1, j + 1, k) + offset, voxels[i][j][k].color, glm::vec3(1, 0, 0)));
+
+						glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
+						glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
+
+						meshIndices.push_back(index1);
+						meshIndices.push_back(index2);
+					}
+					if (faces[5])
+					{
+						meshVertices.push_back(Vertex(glm::vec3(i, j, k) + offset, voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i, j, k + 1) + offset, voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k + 1) + offset, voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
+						meshVertices.push_back(Vertex(glm::vec3(i, j + 1, k) + offset, voxels[i][j][k].color, glm::vec3(-1, 0, 0)));
+
+						glm::ivec3 index1 = glm::ivec3(0, 1, 2) + (int)(2 * meshIndices.size());
+						glm::ivec3 index2 = glm::ivec3(0, 2, 3) + (int)(2 * meshIndices.size());
+
+						meshIndices.push_back(index1);
+						meshIndices.push_back(index2);
 					}
 				}
 			}
@@ -212,6 +242,11 @@ void Chunk::createMesh(GLuint meshShader, GLuint shadowMapShader)
 
 	delete mesh;
 	mesh = new Mesh(meshVertices, meshIndices, meshShader, shadowMapShader);
+}
+
+Mesh* Chunk::getMesh()
+{
+	return mesh;
 }
 
 glm::vec2 Chunk::getCoordinates()
@@ -224,16 +259,16 @@ std::vector<Chunk::Vertex> Chunk::getMeshVertices()
 	return meshVertices;
 }
 
-std::vector<Chunk::Index> Chunk::getMeshIndices()
+std::vector<Chunk::TriangleIndices> Chunk::getMeshIndices()
 {
 	return meshIndices;
 }
 
-bool Chunk::voxelIsSolid(int x, int y, int z)
+bool Chunk::voxelIsAir(int x, int y, int z)
 {
 	if (x >= 0 && y >= 0 && z >= 0 && x < chunkResolution && y < chunkResolution && z < chunkResolution)
 	{
-		if (voxels[x][y][z].type != Voxel::AIR)
+		if (voxels[x][y][z].type == Voxel::AIR)
 			return true;
 	}
 	return false;
@@ -246,7 +281,7 @@ Chunk::Vertex::Vertex(glm::vec3 position, glm::vec4 color, glm::vec3 normal)
 	this->normal = normal;
 }
 
-Chunk::Index::Index(glm::ivec3 index)
+Chunk::TriangleIndices::TriangleIndices(glm::ivec3 index)
 {
 	this->index = index;
 }

@@ -19,9 +19,18 @@ void DebugMenu::render()
 	{
 		camera->setDirection(camDir[0], camDir[1], camDir[2]);
 	}
-	ImGui::InputFloat("FOV", &camera->fov);
-	ImGui::InputFloat("NearPlane", &camera->nearPlane);
-	ImGui::InputFloat("FarPlane", &camera->farPlane);
+	if (ImGui::InputFloat("FOV", &camera->fov))
+	{
+		camera->calculateProjectionMatrix();
+	}
+	if (ImGui::InputFloat("NearPlane", &camera->nearPlane))
+	{
+		camera->calculateProjectionMatrix();
+	}
+	if(ImGui::InputFloat("FarPlane", &camera->farPlane))
+	{
+		camera->calculateProjectionMatrix();
+	}
 
 	ImGui::End();
 }

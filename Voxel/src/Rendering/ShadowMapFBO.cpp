@@ -5,38 +5,51 @@ ShadowMapFBO::ShadowMapFBO(int width, int height)
 	this->width = width;
 	this->height = height;
 
-	//FBO creation
-	glGenFramebuffers(1, &shadowFBO);
+	glGenFramebuffers(1, &shadowMapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
 
-	//Texture creation
+	glViewport(0, 0, width, height);
+
 	glGenTextures(1, &shadowMap);
 	glBindTexture(GL_TEXTURE_2D, shadowMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-	//Attatching texture to FBO
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
-	glDrawBuffers(1, GL_NONE);
-	glReadBuffer(GL_NONE);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cout << "ERROR in framebuffer\n";
-	}
+		std::cout << "Error in framebuffer Error code: " << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowMapFBO::bindForWriting()
+ShadowMapFBO::~ShadowMapFBO()
 {
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, shadowFBO);
-	glViewport(0, 0, width, height);
+	glDeleteFramebuffers(1, &shadowMapFBO);
+	glDeleteTextures(1, &shadowMap);
 }
 
-void ShadowMapFBO::unbind()
+void ShadowMapFBO::bindBuffer()
+{
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, shadowMapFBO);
+}
+
+void ShadowMapFBO::unbindBuffer()
 {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+void ShadowMapFBO::bindTexture()
+{
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+}
+
+void ShadowMapFBO::unbindTexture()
+{
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

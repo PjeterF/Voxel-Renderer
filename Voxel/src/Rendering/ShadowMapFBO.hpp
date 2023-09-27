@@ -7,12 +7,15 @@ class ShadowMapFBO
 {
 public:
 	ShadowMapFBO(int width, int height);
-	void bindForWriting();
-	//void bindForReading();
-	void unbind();
+	~ShadowMapFBO();
+	void bindBuffer();
+	void unbindBuffer();
+
+	void bindTexture();
+	void unbindTexture();
 private:
 	unsigned int shadowMap;
-	unsigned int shadowFBO;
+	unsigned int shadowMapFBO;
 
 	int width, height;
 };

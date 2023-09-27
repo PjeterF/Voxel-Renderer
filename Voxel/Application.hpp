@@ -16,6 +16,7 @@
 #include "Externals/FastNoiseLite.h"
 
 #include "src/VoxelSystem/Chunk.hpp"
+#include "src/VoxelSystem/ChunkManager.hpp"
 #include "src/OpenGL/ShaderProgram.hpp"
 #include "src/Rendering/CubeRenderer.hpp"
 #include "src/Rendering/InstancedCubeRenderer.hpp"
@@ -35,6 +36,8 @@ private:
 	CubeRenderer* cubeRenderer;
 	InstancedCubeRenderer* instancedCubeRenderer;
 	PerspectiveCamera* camera;
+
+	ChunkManager* chunkManager;
 
 	DebugMenu* debugMenu;
 };

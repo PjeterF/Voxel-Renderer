@@ -6,6 +6,7 @@
 #include <vector>;
 
 class Mesh;
+class ChunkManager;
 
 class Chunk
 {
@@ -17,29 +18,31 @@ public:
 		glm::vec4 color;
 		glm::vec3 normal;
 	};
-	struct Index
+	struct TriangleIndices
 	{
-		Index(glm::ivec3 index);
+		TriangleIndices(glm::ivec3 index);
 		glm::ivec3 index;
 	};
 	Chunk(int x, int y);
 	void draw(PerspectiveCamera* camera, glm::vec3 lightDirection, glm::vec2 chunkOffset);
 	void deactivateHiddenVoxels();
-	void createMesh(GLuint meshShader, GLuint shadowMapShader);
+	void createMesh(GLuint meshShader, GLuint shadowMapShader, ChunkManager* manager);
+	Mesh* getMesh();
 	glm::vec2 getCoordinates();
 	std::vector<Vertex> getMeshVertices();
-	std::vector<Index> getMeshIndices();
+	std::vector<TriangleIndices> getMeshIndices();
 
 	static int chunkResolution;
+	static int chunkHeight;
 	static int voxelSize;
 	Voxel*** voxels;
 private:
 	bool voxelIsCovered(int x, int y, int z);
-	bool voxelIsSolid(int x, int y, int z);
+	bool voxelIsAir(int x, int y, int z);
 
 	std::vector<glm::ivec3> activeVoxels;
 	glm::vec2 coord;
-	std::vector<Index> meshIndices;
+	std::vector<TriangleIndices> meshIndices;
 	std::vector<Vertex> meshVertices;
 	Mesh* mesh=nullptr;
 };

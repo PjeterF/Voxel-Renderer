@@ -160,6 +160,7 @@
     <ClCompile Include="src\Rendering\CubeRenderer.cpp" />
     <ClCompile Include="src\Rendering\InstancedCubeRenderer.cpp" />
     <ClCompile Include="src\Rendering\Mesh.cpp" />
+    <ClCompile Include="src\Rendering\MeshRenderer.cpp" />
     <ClCompile Include="src\Rendering\PerspectiveCamera.cpp" />
     <ClCompile Include="src\Rendering\ShadowMapFBO.cpp" />
     <ClCompile Include="src\VoxelSystem\Chunk.cpp" />
@@ -533,6 +534,7 @@
     <ClInclude Include="src\Rendering\CubeRenderer.hpp" />
     <ClInclude Include="src\Rendering\InstancedCubeRenderer.hpp" />
     <ClInclude Include="src\Rendering\Mesh.hpp" />
+    <ClInclude Include="src\Rendering\MeshRenderer.hpp" />
     <ClInclude Include="src\Rendering\PerspectiveCamera.hpp" />
     <ClInclude Include="src\Rendering\ShadowMapFBO.hpp" />
     <ClInclude Include="src\Utility\Utility.hpp" />

@@ -29,14 +29,16 @@ public:
 	void move(DIRECTION direction, float distance);
 	const std::vector<Plane>& getPlanes();
 
-	float fov;
-	float nearPlane, farPlane;
-	float width, height;
-private:
 	void calculateMatrices();
 	void calculateViewMatrix();
 	void calculateProjectionMatrix();
 	void calculatePlanes();
+
+	float fov;
+	float nearPlane, farPlane;
+	float width, height;
+private:
+
 
 	glm::vec3 position;
 	glm::vec3 frontDirection = glm::vec3(1, 0, 0);
