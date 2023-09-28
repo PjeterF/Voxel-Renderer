@@ -86,7 +86,7 @@ void Application::run()
 
 		camera->lookAtFront();
 		
-		glClearColor(0.2, 0.2, 0.2, 1.0);
+		glClearColor(0.52/4, 0.8/4, 0.91/4, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		float T = 10;
@@ -94,6 +94,12 @@ void Application::run()
 		float cosine = cos(glfwGetTime() / T);
 
 		chunkManager->draw(camera);
+
+		ImGui::Begin("LightDirection");
+		ImGui::InputFloat("x", &chunkManager->lightDirection.x);
+		ImGui::InputFloat("y", &chunkManager->lightDirection.y);
+		ImGui::InputFloat("z", &chunkManager->lightDirection.z);
+		ImGui::End();
 
 		static int i = 0;
 		if (i++% 100 == 0)

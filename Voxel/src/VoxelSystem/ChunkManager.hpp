@@ -25,6 +25,8 @@ public:
 	PositionInfo raycastInstersection(PerspectiveCamera* camera);
 	Chunk* getChunk(float worldCoordX, int worldCoordY);
 	PositionInfo worldCoordinatesToLocal(glm::vec3 worldCoordinates);
+
+	glm::vec3 lightDirection = glm::vec3(1, 1, -0.5);
 private:
 
 	int mapToNatural(int n);

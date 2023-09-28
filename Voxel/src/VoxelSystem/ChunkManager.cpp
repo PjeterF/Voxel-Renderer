@@ -22,7 +22,7 @@ void ChunkManager::draw(PerspectiveCamera* camera)
     {
         meshRenderer->meshes.push_back(chunk.second->getMesh());
     }
-    meshRenderer->draw(camera, { -1, -1, -0.4 });
+    meshRenderer->draw(camera, lightDirection);
 }
 
 bool ChunkManager::addChunk(Chunk* newChunk)
