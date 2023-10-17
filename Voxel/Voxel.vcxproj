@@ -537,6 +537,8 @@
     <ClInclude Include="src\Rendering\MeshRenderer.hpp" />
     <ClInclude Include="src\Rendering\PerspectiveCamera.hpp" />
     <ClInclude Include="src\Rendering\ShadowMapFBO.hpp" />
+    <ClInclude Include="src\Resource\Resource.hpp" />
+    <ClInclude Include="src\Resource\ResourceManager.hpp" />
     <ClInclude Include="src\Utility\Utility.hpp" />
     <ClInclude Include="src\VoxelSystem\Chunk.hpp" />
     <ClInclude Include="src\VoxelSystem\ChunkManager.hpp" />

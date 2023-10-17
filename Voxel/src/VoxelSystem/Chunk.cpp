@@ -7,8 +7,8 @@
 #include "../Rendering/Mesh.hpp"
 #include "ChunkManager.hpp"
 
-int Chunk::chunkResolution = 16;
-int Chunk::chunkHeight = 16*4;
+int Chunk::chunkResolution = 32;
+int Chunk::chunkHeight = 32*4;
 int Chunk::voxelSize = 1;
 
 Chunk::Chunk(int x, int y)
@@ -21,7 +21,7 @@ Chunk::Chunk(int x, int y)
 		voxels[i] = new Voxel*[chunkResolution];
 		for (int j = 0; j < chunkResolution; j++)
 		{
-			voxels[i][j] = new Voxel[chunkResolution];
+			voxels[i][j] = new Voxel[chunkHeight];
 		}
 	}
 }
@@ -102,13 +102,13 @@ void Chunk::createMesh(GLuint meshShader, GLuint shadowMapShader, ChunkManager* 
 	{
 		for (int j = 0; j < chunkResolution; j++)
 		{
-			for (int k = 0; k < chunkResolution; k++)
+			for (int k = 0; k < chunkHeight; k++)
 			{
 				bool faces[6] = { false, false, false, false, false, false }; // top botton right left front back
 				if (!voxelIsAir(i, j, k))
 				{
 					//Check top
-					if (k + 1 < chunkResolution)
+					if (k + 1 < chunkHeight)
 					{
 						if (voxelIsAir(i, j, k + 1))
 							faces[0] = true;
@@ -266,7 +266,7 @@ std::vector<Chunk::TriangleIndices> Chunk::getMeshIndices()
 
 bool Chunk::voxelIsAir(int x, int y, int z)
 {
-	if (x >= 0 && y >= 0 && z >= 0 && x < chunkResolution && y < chunkResolution && z < chunkResolution)
+	if (x >= 0 && y >= 0 && z >= 0 && x < chunkResolution && y < chunkResolution && z < chunkHeight)
 	{
 		if (voxels[x][y][z].type == Voxel::AIR)
 			return true;

@@ -30,8 +30,6 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	/*glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);*/
 	glEnable(GL_DEPTH_TEST);
 
 	IMGUI_CHECKVERSION();
@@ -46,20 +44,8 @@ Application::Application(int windowWidth, int windowHeight, std::string title)
 
 void Application::run()
 {
-	FastNoiseLite noise;
-	//noise.SetSeed(102);
-	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-
-	Chunk::chunkResolution = 20*2;
-
-	std::vector<float> noiseResult;
-	for (int i = 0; i < Chunk::chunkResolution; i++)
-	{
-		for (int j = 0; j < Chunk::chunkResolution; j++)
-		{
-			noiseResult.push_back(noise.GetNoise((float)i, (float)j));
-		}
-	}
+	Chunk::chunkResolution = 32;
+	Chunk::chunkHeight = Chunk::chunkResolution*4;
 
 	ShaderProgram* meshShad = new ShaderProgram("src/Shaders/mesh.vert", "src/Shaders/mesh.frag");
 	ShaderProgram* shadowShad = new ShaderProgram("src/Shaders/shadowMap.vert", "src/Shaders/shadowMap.frag");

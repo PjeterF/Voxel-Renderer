@@ -9,10 +9,11 @@
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 void mouseButttonCallback(GLFWwindow* window, int button, int action, int mods);
+
 struct ObjectPool
 {
-	PerspectiveCamera* camera;
-	ChunkManager* manager;
+	PerspectiveCamera* camera=nullptr;
+	ChunkManager* manager=nullptr;
 };
 
 static bool cameraLocked = false;
@@ -32,7 +33,7 @@ void setUpCallbacks(GLFWwindow* window)
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	PerspectiveCamera* camera = objectpool.camera;
-	static float step = 10;
+	static float step = 1;
 	static float degree = 5;
 
 	switch (key)
@@ -119,38 +120,30 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 void cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
-	if (cameraLocked)
-		return;
-
-	static bool first=true;
-	static int prev_x = -100;
-	static int prev_y = -100;
+	static int prev_x = 0;
+	static int prev_y = 0;
 
 	int wndWidth, wndHeight;
 	glfwGetWindowSize(window, &wndWidth, &wndHeight);
 	ypos = wndHeight - ypos;
 
-	PerspectiveCamera* camera = (PerspectiveCamera*)glfwGetWindowUserPointer(window);
-
-	if (first)
+	if (cameraLocked)
 	{
 		prev_x = xpos;
 		prev_y = ypos;
-		first = false;
 		return;
 	}
 
 	static float sensitivity = 0.03;
-
 	if (prev_x < xpos)
-		camera->turn(PerspectiveCamera::RIGHT, abs(prev_x - xpos) * sensitivity);
+		objectpool.camera->turn(PerspectiveCamera::RIGHT, abs(prev_x - xpos) * sensitivity);
 	else
-		camera->turn(PerspectiveCamera::LEFT, abs(prev_x - xpos) * sensitivity);
+		objectpool.camera->turn(PerspectiveCamera::LEFT, abs(prev_x - xpos) * sensitivity);
 
 	if (prev_y < ypos)
-		camera->turn(PerspectiveCamera::UP, abs(prev_y - ypos) * sensitivity);
+		objectpool.camera->turn(PerspectiveCamera::UP, abs(prev_y - ypos) * sensitivity);
 	else
-		camera->turn(PerspectiveCamera::DOWN, abs(prev_y - ypos) * sensitivity);
+		objectpool.camera->turn(PerspectiveCamera::DOWN, abs(prev_y - ypos) * sensitivity);
 
 	prev_x = xpos;
 	prev_y = ypos;
@@ -163,7 +156,7 @@ inline void mouseButttonCallback(GLFWwindow* window, int button, int action, int
 	case GLFW_MOUSE_BUTTON_1:
 	{
 		if(action == GLFW_PRESS)
-			objectpool.manager->raycastInstersection(objectpool.camera);
+			objectpool.manager->castRayFromCamera(objectpool.camera);
 	}
 	break;
 	default:

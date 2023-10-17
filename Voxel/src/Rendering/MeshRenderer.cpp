@@ -9,9 +9,7 @@ MeshRenderer::MeshRenderer(GLuint shadowMapShaderID, GLuint meshShaderID)
 
 void MeshRenderer::performShadowPass(glm::vec3 lightPosition, glm::vec3 lightLookAt)
 {
-	shadowMapFBO = new ShadowMapFBO(3000, 3000);
-
-	//static float ortho[6] = { -200, 200, -200, 200, 50, 1200 };
+	shadowMapFBO = new ShadowMapFBO(1000, 1000);
 
 	shadowMapFBO->bindBuffer();
 	glUseProgram(shadowMapShaderID);
@@ -27,11 +25,14 @@ void MeshRenderer::performShadowPass(glm::vec3 lightPosition, glm::vec3 lightLoo
 	// Draw Shadow
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_FRONT);
 	for (auto mesh : meshes)
 	{
 		glBindVertexArray(mesh->VAO);
 		glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, 0);
 	}
+	//glDisable(GL_CULL_FACE);
 	
 	glBindVertexArray(0);
 	shadowMapFBO->unbindBuffer();
@@ -41,7 +42,12 @@ void MeshRenderer::performShadowPass(glm::vec3 lightPosition, glm::vec3 lightLoo
 
 void MeshRenderer::draw(PerspectiveCamera* camera, glm::vec3 lightDirection)
 {
-	glm::vec3 lightPos = { camera->getPosition().x - lightDirection.x * camera->farPlane, camera->getPosition().y - lightDirection.y * camera->farPlane, 70 };
+	glm::vec3 lightPos =
+	{
+		camera->getPosition().x + (camera->getDirection().x - lightDirection.x) * camera->farPlane / 2,
+		camera->getPosition().y + (camera->getDirection().y - lightDirection.y) * camera->farPlane / 2,
+		70
+	};
 
 	performShadowPass(lightPos, lightPos+lightDirection);
 

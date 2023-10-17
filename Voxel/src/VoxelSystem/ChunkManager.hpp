@@ -22,8 +22,8 @@ public:
 	void generateMeshesForAllChunks();
 	bool isVoxelAir(int chunkX, int chunkY, int localX, int localY, int localZ);
 
-	PositionInfo raycastInstersection(PerspectiveCamera* camera);
-	Chunk* getChunk(float worldCoordX, int worldCoordY);
+	PositionInfo castRayFromCamera(PerspectiveCamera* camera);
+	Chunk* getChunk(float x, int y);
 	PositionInfo worldCoordinatesToLocal(glm::vec3 worldCoordinates);
 
 	glm::vec3 lightDirection = glm::vec3(1, 1, -0.5);
@@ -34,6 +34,8 @@ private:
 
 	void generateTerrain(Chunk* chunk, int dampening, int seed);
 	void placeTrees(Chunk* chunk, int n);
+
+	void removeVoxel(Chunk* chunk, int x, int y, int z);
 
 	int viewDistance = 1;
 	glm::vec2 middleChunkCoordinates = glm::vec2(0, 0);

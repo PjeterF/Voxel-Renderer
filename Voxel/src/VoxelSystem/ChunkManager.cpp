@@ -44,7 +44,7 @@ void ChunkManager::generateChunk(int x, int y, int seed)
 
     Chunk* newChunk = new Chunk(x, y);
 
-    generateTerrain(newChunk, 2, seed);
+    generateTerrain(newChunk, 5, seed);
     placeTrees(newChunk, 10);
 
     addChunk(newChunk);
@@ -52,6 +52,7 @@ void ChunkManager::generateChunk(int x, int y, int seed)
 
 void ChunkManager::generateMeshesForAllChunks()
 {
+    meshRenderer->meshes.clear();
     for (auto chunk : chunks)
     {
         chunk.second->createMesh(meshRenderer->getMeshShaderID(), meshRenderer->getShadowMapShaderID(), this);
@@ -72,11 +73,11 @@ bool ChunkManager::isVoxelAir(int chunkX, int chunkY, int localX, int localY, in
         return false;
 }
 
-ChunkManager::PositionInfo ChunkManager::raycastInstersection(PerspectiveCamera* camera)
+ChunkManager::PositionInfo ChunkManager::castRayFromCamera(PerspectiveCamera* camera)
 {
     glm::vec3 rayLocation = camera->getPosition();
 
-    int maxIterations = 1000;
+    int maxIterations = 300;
     float step = 0.5f;
     for (int i = 0; i < maxIterations; i++)
     {
@@ -86,7 +87,7 @@ ChunkManager::PositionInfo ChunkManager::raycastInstersection(PerspectiveCamera*
         auto currentChunk = chunks.find(cantorPair(posInfo.chunkCoord.x, posInfo.chunkCoord.y));
         if(currentChunk==chunks.end())
            return PositionInfo(-1, -1, -1, -1, -1);
-        else if(posInfo.localVoxelCoord.z<0 || posInfo.localVoxelCoord.z >= Chunk::chunkResolution)
+        else if(posInfo.localVoxelCoord.z<0 || posInfo.localVoxelCoord.z >= Chunk::chunkHeight)
             return PositionInfo(-1, -1, -1, -1, -1);
 
         Voxel& currentVoxel = (*currentChunk).second->voxels[posInfo.localVoxelCoord.x][posInfo.localVoxelCoord.y][posInfo.localVoxelCoord.z];
@@ -101,11 +102,8 @@ ChunkManager::PositionInfo ChunkManager::raycastInstersection(PerspectiveCamera*
     return PositionInfo(-1, -1, -1, -1, -1);
 }
 
-Chunk* ChunkManager::getChunk(float worldCoordX, int worldCoordY)
+Chunk* ChunkManager::getChunk(float x, int y)
 {
-    int x = worldCoordX / Chunk::chunkResolution;
-    int y = worldCoordY / Chunk::chunkResolution;
-
     auto it = chunks.find(cantorPair(x, y));
     if (it == chunks.end())
         return nullptr;
@@ -159,9 +157,9 @@ void ChunkManager::generateTerrain(Chunk* chunk, int dampening, int seed)
     {
         for (int j = 0; j < Chunk::chunkResolution; j++)
         {
-            for (int k = 0; k < Chunk::chunkResolution; k++)
+            for (int k = 0; k < Chunk::chunkHeight; k++)
             {
-                if (k > noise.GetNoise((float)(i + chunk->getCoordinates().x * Chunk::chunkResolution), (float)(j + chunk->getCoordinates().y * Chunk::chunkResolution)) * Chunk::chunkResolution / dampening && k > 3)
+                if (k > noise.GetNoise((float)(i + chunk->getCoordinates().x * Chunk::chunkResolution), (float)(j + chunk->getCoordinates().y * Chunk::chunkResolution)) * Chunk::chunkHeight / dampening && k > 3)
                 {
                     chunk->voxels[i][j][k].type = Voxel::AIR;
                 }
@@ -190,7 +188,7 @@ void ChunkManager::placeTrees(Chunk* chunk, int numberOfTrees)
 
         int height = 3 + rand() % 3;
         int prev_z = 0;
-        for (int z = 0; z < Chunk::chunkResolution; z++)
+        for (int z = 0; z < Chunk::chunkHeight; z++)
         {
             if (chunk->voxels[randCoord.x][randCoord.y][z].type == Voxel::AIR)
             {
@@ -206,7 +204,7 @@ void ChunkManager::placeTrees(Chunk* chunk, int numberOfTrees)
         height = 5;
         if (randCoord.x >= 1 && randCoord.x < Chunk::chunkResolution - 2 && randCoord.y >= 1 && randCoord.y < Chunk::chunkResolution - 2)
         {
-            for (int z = prev_z; z < Chunk::chunkResolution; z++)
+            for (int z = prev_z; z < Chunk::chunkHeight; z++)
             {
                 for (int x = randCoord.x - 1; x <= randCoord.x + 1; x++)
                 {
@@ -223,6 +221,31 @@ void ChunkManager::placeTrees(Chunk* chunk, int numberOfTrees)
             }
         }
     }
+}
+
+void ChunkManager::removeVoxel(Chunk* chunk, int x, int y, int z)
+{
+    glm::vec2 chunkCoord = chunk->getCoordinates();
+    if (x == 0 && y == 0)
+    {
+        Chunk* c = this->getChunk(chunkCoord.x - 1, chunkCoord.y - 1);
+        c->createMesh(this->meshRenderer->getMeshShaderID(), this->meshRenderer->getShadowMapShaderID(), this);
+    }
+    if (x == 0 && y == Chunk::chunkResolution-1)
+    {
+
+    }
+    if (x == Chunk::chunkResolution - 1 && y == 0)
+    {
+
+    }
+    if (x == Chunk::chunkResolution - 1 && y == Chunk::chunkResolution - 1)
+    {
+
+    }
+
+    chunk->createMesh(this->meshRenderer->getMeshShaderID(), this->meshRenderer->getShadowMapShaderID(), this);
+    chunk->voxels[x][y][z].type = Voxel::AIR;
 }
 
 ChunkManager::PositionInfo::PositionInfo(int x, int y, int z, int cx, int cy)
