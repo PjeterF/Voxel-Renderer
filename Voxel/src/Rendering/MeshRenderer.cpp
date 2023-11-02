@@ -4,12 +4,13 @@ MeshRenderer::MeshRenderer(GLuint shadowMapShaderID, GLuint meshShaderID)
 {
 	this->meshShaderID = meshShaderID;
 	this->shadowMapShaderID = shadowMapShaderID;
-	shadowMapFBO = new ShadowMapFBO(2500, 2500);
+	shadowMapFBO = new ShadowMapFBO(shadowMapResolution, shadowMapResolution);
+	texelSize = abs(ortho[0] - ortho[1])/(float)shadowMapResolution;
 }
 
 void MeshRenderer::performShadowPass(glm::vec3 lightPosition, glm::vec3 lightLookAt)
 {
-	shadowMapFBO = new ShadowMapFBO(1000, 1000);
+	shadowMapFBO = new ShadowMapFBO(shadowMapResolution, shadowMapResolution);
 
 	shadowMapFBO->bindBuffer();
 	glUseProgram(shadowMapShaderID);
@@ -25,15 +26,12 @@ void MeshRenderer::performShadowPass(glm::vec3 lightPosition, glm::vec3 lightLoo
 	// Draw Shadow
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
 	for (auto mesh : meshes)
 	{
 		glBindVertexArray(mesh->VAO);
 		glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, 0);
 	}
-	//glDisable(GL_CULL_FACE);
-	
+
 	glBindVertexArray(0);
 	shadowMapFBO->unbindBuffer();
 
@@ -49,9 +47,17 @@ void MeshRenderer::draw(PerspectiveCamera* camera, glm::vec3 lightDirection)
 		70
 	};
 
+	lightPos = glm::vec3
+	(
+		(int)(lightPos.x / texelSize) * texelSize,
+		(int)(lightPos.y / texelSize) * texelSize,
+		(int)(lightPos.z / texelSize) * texelSize
+	);
+
 	performShadowPass(lightPos, lightPos+lightDirection);
 
-	glm::mat4 biasMatrix(
+	glm::mat4 biasMatrix
+	(
 		0.5, 0.0, 0.0, 0.0,
 		0.0, 0.5, 0.0, 0.0,
 		0.0, 0.0, 0.5, 0.0,
@@ -73,6 +79,12 @@ void MeshRenderer::draw(PerspectiveCamera* camera, glm::vec3 lightDirection)
 
 	unsigned int positionOffset = glGetUniformLocation(meshShaderID, "positionOffset");
 	glUniform2f(positionOffset, 0.0f, 0.0f);
+
+	unsigned int lightDirectionLocation = glGetUniformLocation(meshShaderID, "lightDirection");
+	glUniform3f(lightDirectionLocation, lightDirection.x, lightDirection.y, lightDirection.z);
+
+	unsigned int cameraPositionLocation = glGetUniformLocation(meshShaderID, "cameraPosition");
+	glUniform3f(cameraPositionLocation, camera->getPosition().x, camera->getPosition().y, camera->getPosition().z);
 
 	// Draw Meshes
 	glActiveTexture(GL_TEXTURE0);

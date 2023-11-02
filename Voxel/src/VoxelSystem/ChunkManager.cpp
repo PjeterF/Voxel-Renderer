@@ -1,14 +1,7 @@
 #include "ChunkManager.hpp"
 #include <cmath>
 #include "../../Externals/FastNoiseLite.h"
-
-int ChunkManager::mapToNatural(int n)
-{
-    if (n >= 0)
-        return 2 * n;
-    else
-        return -2 * n - 1;
-}
+#include "../Utility/Utility.hpp"
 
 ChunkManager::ChunkManager(int viewDistance, GLuint shadowMapShaderID, GLuint meshShaderID)
 {
@@ -20,14 +13,23 @@ void ChunkManager::draw(PerspectiveCamera* camera)
     meshRenderer->meshes.clear();
     for (auto chunk : chunks)
     {
-        meshRenderer->meshes.push_back(chunk.second->getMesh());
+        glm::vec3 point = glm::vec3
+        (
+            (chunk.second->getCoordinates().x + 0.5f) * Chunk::chunkResolution,
+            (chunk.second->getCoordinates().y + 0.5f) * Chunk::chunkResolution,
+            0
+        );
+
+        if (camera->isAABBInHalfspace(point.x, point.y, point.z, Chunk::chunkResolution, Chunk::chunkResolution, Chunk::chunkHeight))
+            meshRenderer->meshes.push_back(chunk.second->getMesh()); 
     }
+    //std::cout << "Loaded chunks: " << chunks.size() << " | Chunks sent to GPU: " << meshRenderer->meshes.size() << "\n";
     meshRenderer->draw(camera, lightDirection);
 }
 
 bool ChunkManager::addChunk(Chunk* newChunk)
 {
-    int index = cantorPair(newChunk->getCoordinates().x, newChunk->getCoordinates().y);
+    int index = utility::pairing::integerPair(newChunk->getCoordinates().x, newChunk->getCoordinates().y);
 
     if (chunks.find(index) != chunks.end())
         return false;
@@ -39,13 +41,25 @@ bool ChunkManager::addChunk(Chunk* newChunk)
 
 void ChunkManager::generateChunk(int x, int y, int seed)
 {
-    if (chunks.find(cantorPair(x, y)) != chunks.end())
+    if (chunks.find(utility::pairing::integerPair(x, y)) != chunks.end())
         return;
 
     Chunk* newChunk = new Chunk(x, y);
 
     generateTerrain(newChunk, 5, seed);
     placeTrees(newChunk, 10);
+
+    addChunk(newChunk);
+}
+
+void ChunkManager::generateChunk2(int x, int y, int seed)
+{
+    if (chunks.find(utility::pairing::integerPair(x, y)) != chunks.end())
+        return;
+
+    Chunk* newChunk = new Chunk(x, y);
+
+    generateTerrain(newChunk, 8, seed);
 
     addChunk(newChunk);
 }
@@ -62,7 +76,7 @@ void ChunkManager::generateMeshesForAllChunks()
 
 bool ChunkManager::isVoxelAir(int chunkX, int chunkY, int localX, int localY, int localZ)
 {
-    auto it_chunk = chunks.find(cantorPair(chunkX, chunkY));
+    auto it_chunk = chunks.find(utility::pairing::integerPair(chunkX, chunkY));
 
     if (it_chunk == chunks.end())
         return false;
@@ -71,6 +85,30 @@ bool ChunkManager::isVoxelAir(int chunkX, int chunkY, int localX, int localY, in
         return true;
     else
         return false;
+}
+
+Voxel* ChunkManager::getVoxel(PositionInfo& posInfo)
+{
+    if (posInfo.localVoxelCoord.x == -1 || posInfo.localVoxelCoord.y == -1 || posInfo.localVoxelCoord.z == -1)
+        return nullptr;
+
+    auto it = chunks.find(utility::pairing::integerPair(posInfo.chunkCoord.x, posInfo.chunkCoord.y));
+    if (it == chunks.end())
+        return nullptr;
+
+    return &(*it).second->voxels[posInfo.localVoxelCoord.x][posInfo.localVoxelCoord.y][posInfo.localVoxelCoord.z];
+}
+
+Chunk* ChunkManager::getChunk(PositionInfo& posInfo)
+{
+    if (posInfo.localVoxelCoord.x == -1 || posInfo.localVoxelCoord.y == -1 || posInfo.localVoxelCoord.z == -1)
+        return nullptr;
+
+    auto it = chunks.find(utility::pairing::integerPair(posInfo.chunkCoord.x, posInfo.chunkCoord.y));
+    if (it == chunks.end())
+        return nullptr;
+
+    return (*it).second;
 }
 
 ChunkManager::PositionInfo ChunkManager::castRayFromCamera(PerspectiveCamera* camera)
@@ -84,7 +122,7 @@ ChunkManager::PositionInfo ChunkManager::castRayFromCamera(PerspectiveCamera* ca
         rayLocation = rayLocation + step * camera->getDirection();
         PositionInfo posInfo = worldCoordinatesToLocal(rayLocation);
 
-        auto currentChunk = chunks.find(cantorPair(posInfo.chunkCoord.x, posInfo.chunkCoord.y));
+        auto currentChunk = chunks.find(utility::pairing::integerPair(posInfo.chunkCoord.x, posInfo.chunkCoord.y));
         if(currentChunk==chunks.end())
            return PositionInfo(-1, -1, -1, -1, -1);
         else if(posInfo.localVoxelCoord.z<0 || posInfo.localVoxelCoord.z >= Chunk::chunkHeight)
@@ -92,23 +130,32 @@ ChunkManager::PositionInfo ChunkManager::castRayFromCamera(PerspectiveCamera* ca
 
         Voxel& currentVoxel = (*currentChunk).second->voxels[posInfo.localVoxelCoord.x][posInfo.localVoxelCoord.y][posInfo.localVoxelCoord.z];
         if (currentVoxel.type != Voxel::AIR)
-        {
-            currentVoxel.color = glm::vec4(1, 0, 0, 1);
-            currentVoxel.type = Voxel::AIR;
-            (*currentChunk).second->createMesh(meshRenderer->getMeshShaderID(), meshRenderer->getShadowMapShaderID(), this);
             return PositionInfo(posInfo.localVoxelCoord.x, posInfo.localVoxelCoord.y, posInfo.localVoxelCoord.z, posInfo.chunkCoord.x, posInfo.chunkCoord.y);
-        }
     }
     return PositionInfo(-1, -1, -1, -1, -1);
 }
 
 Chunk* ChunkManager::getChunk(float x, int y)
 {
-    auto it = chunks.find(cantorPair(x, y));
+    auto it = chunks.find(utility::pairing::integerPair(x, y));
     if (it == chunks.end())
         return nullptr;
     else
         return (*it).second;
+}
+
+bool ChunkManager::createMesh(int x, int y)
+{
+    Chunk* chunk = getChunk(x, y);
+    if (chunk == nullptr)
+    {
+        return false;
+    }
+    else
+    {
+        chunk->createMesh(meshRenderer->getMeshShaderID(), meshRenderer->getShadowMapShaderID(), this);
+        return true;
+    }
 }
 
 ChunkManager::PositionInfo ChunkManager::worldCoordinatesToLocal(glm::vec3 worldCoordinates)
@@ -125,6 +172,7 @@ ChunkManager::PositionInfo ChunkManager::worldCoordinatesToLocal(glm::vec3 world
         posInfo.chunkCoord.x = worldCoordinates.x / Chunk::chunkResolution-1;
         posInfo.localVoxelCoord.x = Chunk::chunkResolution - (abs(worldCoordinates.x) - abs(posInfo.chunkCoord.x + 1) * Chunk::chunkResolution);
     }
+
     if (worldCoordinates.y >= 0)
     {
         posInfo.chunkCoord.y = worldCoordinates.y / Chunk::chunkResolution;
@@ -135,16 +183,119 @@ ChunkManager::PositionInfo ChunkManager::worldCoordinatesToLocal(glm::vec3 world
         posInfo.chunkCoord.y = worldCoordinates.y / Chunk::chunkResolution - 1;
         posInfo.localVoxelCoord.y = Chunk::chunkResolution - (abs(worldCoordinates.y) - abs(posInfo.chunkCoord.y + 1) * Chunk::chunkResolution);
     }
+
     posInfo.localVoxelCoord.z = worldCoordinates.z;
+
     return posInfo;
 }
 
-int ChunkManager::cantorPair(int a, int b)
+int ChunkManager::numberOfVoxelNeighbors(PositionInfo posInfo)
 {
-    a = mapToNatural(a);
-    b = mapToNatural(b);
+    if (getVoxel(posInfo) == nullptr)
+        return 0;
 
-    return (a + b) * (a + b + 1) / 2 + b;
+    int n = 0;
+    Voxel* vox;
+    PositionInfo pos;
+
+    if (posInfo.localVoxelCoord.x == 0)
+    {
+        pos = posInfo;
+        pos.chunkCoord.x--;
+        pos.localVoxelCoord.x = Chunk::chunkResolution - 1;
+        vox = getVoxel(pos);
+        if (vox != nullptr)
+        {
+            if (vox->type != Voxel::AIR)
+                n++;
+        }
+    }
+    else
+    {
+        pos = posInfo;
+        pos.localVoxelCoord.x--;
+        vox = getVoxel(pos);
+        if (vox->type != Voxel::AIR)
+            n++;
+    }
+    if (posInfo.localVoxelCoord.x == Chunk::chunkResolution - 1)
+    {
+        pos = posInfo;
+        pos.chunkCoord.x++;
+        pos.localVoxelCoord.x = 0;
+        vox = getVoxel(pos);
+        if (vox != nullptr)
+        {
+            if (vox->type != Voxel::AIR)
+                n++;
+        }
+    }
+    else
+    {
+        pos = posInfo;
+        pos.localVoxelCoord.x++;
+        vox = getVoxel(pos);
+        if (vox->type != Voxel::AIR)
+            n++;
+    }
+    if (posInfo.localVoxelCoord.y == 0)
+    {
+        pos = posInfo;
+        pos.chunkCoord.y--;
+        pos.localVoxelCoord.y = Chunk::chunkResolution - 1;
+        vox = getVoxel(pos);
+        if (vox != nullptr)
+        {
+            if (vox->type != Voxel::AIR)
+                n++;
+        }
+    }
+    else
+    {
+        pos = posInfo;
+        pos.localVoxelCoord.y--;
+        vox = getVoxel(pos);
+        if (vox->type != Voxel::AIR)
+            n++;
+    }
+    if (posInfo.localVoxelCoord.y == Chunk::chunkResolution - 1)
+    {
+        pos = posInfo;
+        pos.chunkCoord.y++;
+        pos.localVoxelCoord.y = 0;
+        vox = getVoxel(pos);
+        if (vox != nullptr)
+        {
+            if (vox->type != Voxel::AIR)
+                n++;
+        }
+    }
+    else
+    {
+        pos = posInfo;
+        pos.localVoxelCoord.y++;
+        vox = getVoxel(pos);
+        if (vox->type != Voxel::AIR)
+            n++;
+    }
+    if (posInfo.localVoxelCoord.z != 0)
+    {
+        pos = posInfo;
+        pos.localVoxelCoord.z++;
+        vox = getVoxel(pos);
+        if (vox->type != Voxel::AIR)
+            n++;
+    }
+    if (posInfo.localVoxelCoord.z != Chunk::chunkHeight - 1)
+    {
+        pos = posInfo;
+        pos.localVoxelCoord.z--;
+        vox = getVoxel(pos);
+        if (vox->type != Voxel::AIR)
+            n++;
+    }
+
+    return n;
 }
 
 void ChunkManager::generateTerrain(Chunk* chunk, int dampening, int seed)
@@ -193,7 +344,7 @@ void ChunkManager::placeTrees(Chunk* chunk, int numberOfTrees)
             if (chunk->voxels[randCoord.x][randCoord.y][z].type == Voxel::AIR)
             {
                 chunk->voxels[randCoord.x][randCoord.y][z].type = Voxel::SOLID;
-                chunk->voxels[randCoord.x][randCoord.y][z].color = glm::vec4(0.4, 0.25, 0.12, 1);
+                chunk->voxels[randCoord.x][randCoord.y][z].color = 0.8f * glm::vec4(0.4, 0.25, 0.12, 1);
                 if (--height == 0)
                 {
                     prev_z = z;

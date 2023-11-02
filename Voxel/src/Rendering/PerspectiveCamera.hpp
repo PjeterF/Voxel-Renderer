@@ -33,6 +33,12 @@ public:
 	void calculateViewMatrix();
 	void calculateProjectionMatrix();
 	void calculatePlanes();
+	void calculatePlanes2();
+
+	bool isPointInFrustum(float x, float y, float z);
+	bool isAABBInFrustum(float x, float y, float z, float w_x, float w_y, float w_z);
+	bool isPointInHalfspace(float x, float y, float z);
+	bool isAABBInHalfspace(float x, float y, float z, float w_x, float w_y, float w_z);
 
 	float fov;
 	float nearPlane, farPlane;

@@ -17,8 +17,11 @@ public:
 private:
 	ShadowMapFBO* shadowMapFBO;
 	glm::mat4 lightTransform=glm::mat4(1.0f);
-	float ortho[6] = { -250, 250, -250, 250, 1, 700 };
 
 	GLuint shadowMapShaderID;
 	GLuint meshShaderID;
+
+	float texelSize;
+	int shadowMapResolution = 4000;
+	float ortho[6] = { -250, 250, -250, 250, 1, 700 };
 };

@@ -1,11 +1,9 @@
 #include "Chunk.hpp"
 #include "Voxel.hpp"
 
-#include <unordered_map>
-#include <array>
-
 #include "../Rendering/Mesh.hpp"
 #include "ChunkManager.hpp"
+#include "../Utility/Utility.hpp"
 
 int Chunk::chunkResolution = 32;
 int Chunk::chunkHeight = 32*4;
@@ -105,26 +103,26 @@ void Chunk::createMesh(GLuint meshShader, GLuint shadowMapShader, ChunkManager* 
 			for (int k = 0; k < chunkHeight; k++)
 			{
 				bool faces[6] = { false, false, false, false, false, false }; // top botton right left front back
-				if (!voxelIsAir(i, j, k))
+				if (!isVoxelAir(i, j, k))
 				{
 					//Check top
 					if (k + 1 < chunkHeight)
 					{
-						if (voxelIsAir(i, j, k + 1))
+						if (isVoxelAir(i, j, k + 1))
 							faces[0] = true;
 					}
 
 					//Check bottom
 					if (k - 1 >= 0)
 					{
-						if (voxelIsAir(i, j, k-1))
+						if (isVoxelAir(i, j, k-1))
 							faces[1] = true;
 					}
 
 					//Check right
 					if (j + 1 < chunkResolution)
 					{
-						if (voxelIsAir(i, j+1, k))
+						if (isVoxelAir(i, j+1, k))
 							faces[2] = true;
 					}
 					else if (manager->isVoxelAir(coord.x, coord.y + 1, i, 0, k))
@@ -133,7 +131,7 @@ void Chunk::createMesh(GLuint meshShader, GLuint shadowMapShader, ChunkManager* 
 					//Check left
 					if (j - 1 >= 0)
 					{
-						if (voxelIsAir(i, j-1, k))
+						if (isVoxelAir(i, j-1, k))
 							faces[3] = true;
 					}
 					else if (manager->isVoxelAir(coord.x, coord.y - 1, i, chunkResolution - 1, k))
@@ -142,7 +140,7 @@ void Chunk::createMesh(GLuint meshShader, GLuint shadowMapShader, ChunkManager* 
 					//Check front
 					if (i + 1 < chunkResolution)
 					{
-						if (voxelIsAir(i+1, j, k))
+						if (isVoxelAir(i+1, j, k))
 							faces[4] = true;
 					}
 					else if (manager->isVoxelAir(coord.x + 1, coord.y, 0, j, k))
@@ -151,7 +149,7 @@ void Chunk::createMesh(GLuint meshShader, GLuint shadowMapShader, ChunkManager* 
 					//Check back
 					if (i - 1 >= 0)
 					{
-						if (voxelIsAir(i-1, j, k))
+						if (isVoxelAir(i-1, j, k))
 							faces[5] = true;
 					}
 					else if (manager->isVoxelAir(coord.x - 1, coord.y, chunkResolution - 1, j, k))
@@ -264,7 +262,7 @@ std::vector<Chunk::TriangleIndices> Chunk::getMeshIndices()
 	return meshIndices;
 }
 
-bool Chunk::voxelIsAir(int x, int y, int z)
+bool Chunk::isVoxelAir(int x, int y, int z)
 {
 	if (x >= 0 && y >= 0 && z >= 0 && x < chunkResolution && y < chunkResolution && z < chunkHeight)
 	{
@@ -272,6 +270,31 @@ bool Chunk::voxelIsAir(int x, int y, int z)
 			return true;
 	}
 	return false;
+}
+
+std::vector<glm::ivec3> Chunk::voxelVertices(int i, int j, int k)
+{
+	std::vector<glm::ivec3> vertices;
+
+	vertices.push_back({ i, j, k });
+	vertices.push_back({ i, j+1, k });
+	vertices.push_back({ i+1, j+1, k });
+	vertices.push_back({ i+1, j, k });
+	vertices.push_back({ i, j, k+1 });
+	vertices.push_back({ i, j + 1, k+1 });
+	vertices.push_back({ i + 1, j + 1, k+1 });
+	vertices.push_back({ i + 1, j, k+1 });
+
+	return vertices;
+}
+
+bool Chunk::isVertexInMap(int i, int j, int k, std::unordered_map<int, int>& map)
+{
+	auto it = map.find(utility::pairing::cantorTriple(i, j, k));
+	if (it == map.end())
+		return true;
+	else
+		return false;
 }
 
 Chunk::Vertex::Vertex(glm::vec3 position, glm::vec4 color, glm::vec3 normal)

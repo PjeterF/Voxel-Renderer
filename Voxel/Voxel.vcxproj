@@ -163,6 +163,7 @@
     <ClCompile Include="src\Rendering\MeshRenderer.cpp" />
     <ClCompile Include="src\Rendering\PerspectiveCamera.cpp" />
     <ClCompile Include="src\Rendering\ShadowMapFBO.cpp" />
+    <ClCompile Include="src\Utility\Utility.cpp" />
     <ClCompile Include="src\VoxelSystem\Chunk.cpp" />
     <ClCompile Include="src\VoxelSystem\ChunkManager.cpp" />
     <ClCompile Include="src\VoxelSystem\Voxel.cpp" />

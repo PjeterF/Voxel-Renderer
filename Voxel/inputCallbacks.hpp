@@ -155,11 +155,35 @@ inline void mouseButttonCallback(GLFWwindow* window, int button, int action, int
 	{
 	case GLFW_MOUSE_BUTTON_1:
 	{
-		if(action == GLFW_PRESS)
-			objectpool.manager->castRayFromCamera(objectpool.camera);
+		if (action == GLFW_PRESS)
+		{
+			auto posInfo = objectpool.manager->castRayFromCamera(objectpool.camera);
+
+			auto voxel = objectpool.manager->getVoxel(posInfo);
+			if (voxel == nullptr)
+				return;
+
+			voxel->type = Voxel::AIR;
+			objectpool.manager->createMesh(posInfo.chunkCoord.x, posInfo.chunkCoord.y);
+
+			if (posInfo.localVoxelCoord.x == 0)
+			{
+				objectpool.manager->createMesh(posInfo.chunkCoord.x - 1, posInfo.chunkCoord.y);
+			}
+			if (posInfo.localVoxelCoord.x == Chunk::chunkResolution - 1)
+			{
+				objectpool.manager->createMesh(posInfo.chunkCoord.x + 1, posInfo.chunkCoord.y);
+			}
+			if (posInfo.localVoxelCoord.y == 0)
+			{
+				objectpool.manager->createMesh(posInfo.chunkCoord.x, posInfo.chunkCoord.y - 1);
+			}
+			if (posInfo.localVoxelCoord.y == Chunk::chunkResolution - 1)
+			{
+				objectpool.manager->createMesh(posInfo.chunkCoord.x, posInfo.chunkCoord.y + 1);
+			}
+		}
 	}
 	break;
-	default:
-		break;
 	}
 }

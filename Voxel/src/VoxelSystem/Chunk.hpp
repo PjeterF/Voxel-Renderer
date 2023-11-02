@@ -2,7 +2,7 @@
 
 #include "Voxel.hpp"
 #include "../Rendering/InstancedCubeRenderer.hpp"
-
+#include <unordered_map>
 #include <vector>;
 
 class Mesh;
@@ -38,7 +38,10 @@ public:
 	Voxel*** voxels;
 private:
 	bool voxelIsCovered(int x, int y, int z);
-	bool voxelIsAir(int x, int y, int z);
+	bool isVoxelAir(int x, int y, int z);
+
+	std::vector<glm::ivec3> voxelVertices(int i, int j, int k);
+	bool isVertexInMap(int i, int j, int k, std::unordered_map<int, int>& map);
 
 	std::vector<glm::ivec3> activeVoxels;
 	glm::vec2 coord;
